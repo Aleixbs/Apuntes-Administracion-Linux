@@ -1,0 +1,118 @@
+# 6.11.2023
+
+# Curso de Administración de Red - Hat
+# Montar carpeta compartida
+
+# En VirtualBox. Clic en Dispositivos > Carpetas compartidas > Preferencias de carpetas compartidas
+
+# En ruta: La ruta del sistema anfitrión que se quiere compartir
+# En ombre: Un nombre sencillo, preferiblemente en minúsculas y sin espacios: compartido
+# Activar: Hacer permanente
+
+# Iniciar un terminal
+
+su -
+	contraseña: root
+
+mount -t vboxsf desktop /mnt
+
+
+# Iniciar un Nautlius: alt + f2 nautilus
+# control + l : /mnt
+
+cat /etc/passwd
+
+# Ver el usuario de la sesión
+id
+whoami
+who am i (indicaria el propietario inicial del proceso de la sesión)
+
+# Funcionamiento del entorno
+# Página 69>
+
+echo - Escribir en la salida estándar
+
+[usuario@formacion ~]$ echo $SHELL
+/bin/bash
+[usuario@formacion ~]$ echo $PATH
+/home/usuario/.local/bin:/home/usuario/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin
+[usuario@formacion ~]$ echo $USER
+usuario
+
+
+env - Muestra todas las variables de entorno
+
+$SHELL - El intérprete de comandos que se está utilizando
+$USER - Usuario de la sesión
+$PWD - Directorio de trabajo en el que se encuentra la sesión
+	Ruta
+
+pwd (Comando): Muestra el directorio de trabajo (coincide con el valor de $PWD)
+
+$PATH - Conjunto de rutas en las que se buscarán los programas que se quieren ejecutar
+
+
+which firefox
+
+-- Moverse por la estructura de carpetas
+cd - Cambiar de directorio
+ls - Listar el contenido de un directorio
+
+
+cd /
+pwd
+	Devuelve: /
+
+ls
+ls -l (-l = Modo lista)
+
+ls -a (-a = Muestra todos (all) los archivos incluyendo los ocultos)
+  -- Los ficheros ocultos en Linux comienzan con un .   ejemplo: .nombrerecurso
+
+
+-- Rutas relativas: Parten del PWD actual y se indican con ../ (hacia atrás) o nombres de recursos 
+-- Rutas absolutos: Parten del / e indican la ruta completa
+
+
+touch - Crear archivos sin contenido (modifica la fecha de última modificación de un archivo)
+
+cd
+pwd
+	-- /home/usuario
+touch file1
+touch file2
+ls
+	-- Aparecen file1 y file2
+
+
+cd /
+touch file1
+	-- Error
+
+touch /home/usuario/file3
+ls /home/usuario
+
+touch ~/file4
+ls ~
+
+~ : Se sustituye por el $HOME del usuario
+
+
+history - Muestra todos los comandos de la sesión
+
+(No pasar nunca contraseñas por línea de comandos)
+
+-- Utilizar comandos de history: !numero
+
+-- history guarda el historial en el archivo ~/.bash_history
+
+cd
+
+cat .bash_history
+
+-- Para eliminar el historial:
+history -c
+rm ~/.bash_history
+
+
+file - Indica el tipo de arhivo que es
