@@ -1,0 +1,375 @@
+-- Código 7.11.2023
+-- Página 75
+
+-- Ejemplo de montaje de sistemas
+/  - /dev/sda1 (100 MB)
+/boot 
+/mnt  150 GB
+/home - /dev/sdd1
+/home/usuario
+/home/usuario/curso > /192.168.1.100/carpeta_servido
+/root 100 GB
+/usr  1 TB
+/datos > /dev/sdc1
+/datos/internos
+/datos/externos > /dev/sdd1 (xfs)
+/datos_windows > //192.168.1.100/carpeta_servidor (cifs) 
+
+CIFS/SAMBA -> SMB
+
+
+
+/
+  /usr
+  /home		<- /dev/sdb1
+    ./usuario
+    ./pedro
+ 
+
+
+
+2 TB > /dev/sdc1
+
+
+/dev/sdc1 < 2 TB
+/dev/sdd1 < 5 TB
+
+Windows:
+C:\Users -> D:\Users
+D:\Users\
+
+
+
+-- EDITORES DE TEXTO
+-- gedit > Similar al bloc de notas de Windows
+-- nano > Un editor de terminal sencillo
+-- vi  / vim
+
+-- Ejemplo, usar /etc/passwd para explicar vi
+-- Como usuario: usuario
+cd 
+pwd
+	-- /home/usuario
+cp /etc/passwd ./
+
+ls
+cat passwd
+
+vi passwd
+
+/*
+hjkl para moverse
+dd  para eliminar la línea en la que está el cursor
+x   para eliminar el carácter en el que está el cursor
+
+número acción, la acción se repite n veces
+10 h    10 caracteres a la izquierda
+10 x    borrar 10 caracteres en la posición
+
+i  Entrar en modo INSERT en el punto del cursor
+o  Entrar en modo INSERT insertando una línea bajo el cursor
+
+ESCape  Salir del modo INSERT
+
+-- Para guardar y salir
+:
+:q (Salir sin guardar, no deja si hay cambios)
+:w 
+:q! (Salir sin guardar obligatorio)
+:wq (Salir guardando, guardar y salir)
+
+
+*/
+
+
+
+/* NANO
+
+control + W : Buscar
+control + O : Guardar
+Control + V : Siguiente página
+control + X : Salir (si no se ha guardado, propone guardar cambios)
+
+Control + K : Cortar línea y almacenar en buffer
+Control + U : Pega el buffer cortado en el punto del cursor
+
+*/
+
+
+-- REDIRECCIONES
+
+[usuario@formacion ~]$ echo "texto"
+texto
+[usuario@formacion ~]$ echo "Texto" > salidaecho
+[usuario@formacion ~]$ 
+[usuario@formacion ~]$ ls
+curso    Documents  file1  file3  Music   Pictures  salidacat   Templates
+Desktop  Downloads  file2  file4  passwd  Public    salidaecho  Videos
+[usuario@formacion ~]$ cat salidaecho
+Texto
+[usuario@formacion ~]$ echo "Otro texto" > salidaecho
+[usuario@formacion ~]$ 
+[usuario@formacion ~]$ cat salidaecho 
+Otro texto
+[usuario@formacion ~]$ 
+[usuario@formacion ~]$ 
+[usuario@formacion ~]$ echo "Otro texto mas" >> salidaecho
+[usuario@formacion ~]$ cat salidaecho
+Otro texto
+Otro texto mas
+[usuario@formacion ~]$ 
+-- GREP
+
+[usuario@formacion ~]$ cat passwd 
+root:x:0:0:root:/root:/bin/sh
+colord:x:976:976:User for colord:/var/lib/colord:/sbin/nologin
+gnome-initial-setup:x:975:975::/run/gnome-initial-setup/:/sbin/nologin
+tcpdump:x:72:72::/:/sbin/nologin
+vboxadd:x:974:1::/var/run/vboxadd:/bin/false
+mysql:x:27:27:MySQL Server:/var/lib/mysql:/sbin/nologin
+[usuario@formacion ~]$ cat passwd | grep /nologin
+colord:x:976:976:User for colord:/var/lib/colord:/sbin/nologin
+gnome-initial-setup:x:975:975::/run/gnome-initial-setup/:/sbin/nologin
+tcpdump:x:72:72::/:/sbin/nologin
+mysql:x:27:27:MySQL Server:/var/lib/mysql:/sbin/nologin
+[usuario@formacion ~]$ cat passwd | grep root
+root:x:0:0:root:/root:/bin/sh
+[usuario@formacion ~]$ cat passwd | grep usuario
+[usuario@formacion ~]$ cat passwd | grep mysql
+mysql:x:27:27:MySQL Server:/var/lib/mysql:/sbin/nologin
+[usuario@formacion ~]$ 
+
+
+
+-- Ejemplo de búsqueda en log y contar cuantas veces aparece lo que se busca
+cat /var/log/secure | grep root | grep "session opened" | wc -l
+
+
+
+-- Redirección
+-- Uso muy útil con MySQL
+-- Ejemplo:
+mysql -uroot -p < /home/usuario/fichero_con_sql.sql
+
+
+
+-- BUSCAR FICHEROS
+find / -name file4
+  -- Salen errores y ficheros encontrados
+
+
+find / -name file4 > /home/usuario/resultadobusqueda
+  -- Salen errores
+  -- El fichero encontrado está en /home/usuario/resultadobusqueda
+
+find / -name file4 2> /home/usuario/salidaerrores
+  -- No salen errores, van al fichero
+  -- Los ficheros encontrados salen por pantalla
+
+
+find / -name file4 > salidacorrecta 2> salidaerror
+  -- Errores al fichero
+  -- Los ficheros encontrados al fichero
+
+
+find / -name "file?" 2> /dev/null
+
+/dev/null > Elimina todo lo que recibe
+
+find /home/usuario -name "file*" 2> /dev/null
+
+
+-- AYUDA
+-- Página 98
+man which
+man cd
+  -- Muestra el manual de Bash, ya que cd es una función de bash, no un comando del sistema operativo
+
+man ls
+
+
+info comando
+
+
+
+
+
+
+-- BUSCAR TEXTO EN FICHEROS
+
+[usuario@formacion ~]$ grep -r ./* -e "Texto que busco"
+./file2:Texto que busco
+./file4:Texto que busco
+
+[usuario@formacion ~]$ grep -r ./* -e "Texto que busco"
+./datos/file2:Texto que busco
+./file2:Texto que busco
+./file4:Texto que busco
+[usuario@formacion ~]$ 
+
+[usuario@formacion ~]$ grep -r ./* -e "Texto que busco" -n
+./datos/file2:2:Texto que busco
+./datos/file2:6:Texto que busco
+./datos/file2:9:Texto que busco
+./file2:2:Texto que busco
+./file4:3:Texto que busco
+
+
+grep -r /var/log -e "192.168.1.100" 2> /dev/null
+
+
+[usuario@formacion ~]$ grep -r ./* -e "Texto que busco" -n > busqueda_grep
+[usuario@formacion ~]$ ls
+busqueda_grep  Downloads  file4     resultadobusqueda  salidaerrores
+curso          file1      Music     salidacat          Templates
+datos          file11     passwd    salidacorrecta     Videos
+Desktop        file2      Pictures  salidaecho
+Documents      file3      Public    salidaerror
+[usuario@formacion ~]$ cat busqueda_grep 
+./datos/file2:2:Texto que busco
+./datos/file2:6:Texto que busco
+./datos/file2:9:Texto que busco
+./file2:2:Texto que busco
+./file4:3:Texto que busco
+[usuario@formacion ~]$ 
+
+[usuario@formacion ~]$ grep -r ./* -e "Texto que busco" -c
+./busqueda_grep:5
+./datos/file2:3
+./Documents/RED_HAT_ENTERPRISE_LINUX_9_ADMINISTRATION.pdf:0
+./file1:0
+./file11:0
+./file2:1
+./file3:0
+./file4:1
+./passwd:0
+./resultadobusqueda:0
+./salidacat:0
+./salidacorrecta:0
+./salidaecho:0
+./salidaerror:0
+./salidaerrores:0
+
+
+-- MORE / LESS
+-- Facilitan el cat para textos grandes y verlo de forma interactiva
+
+man grep > texto_grep
+
+more texto_grep
+less texto_grep
+
+-- Búsquedas
+/texto a buscar
+n - para ir de entrada en entrada
+
+q / control + c : para salir
+
+-- HEAD / TAIL
+cat limitado
+head cat del inicio
+tail cat del final
+
+
+
+[usuario@formacion ~]$ head texto_grep 
+GREP(1)                     General Commands Manual                    GREP(1)
+
+NAME
+       grep, egrep, fgrep - print lines matching a pattern
+
+SYNOPSIS
+       grep [OPTIONS] PATTERN [FILE...]
+       grep [OPTIONS] -e PATTERN ... [FILE...]
+       grep [OPTIONS] -f FILE ... [FILE...]
+
+[usuario@formacion ~]$ 
+[usuario@formacion ~]$ man head
+[usuario@formacion ~]$ 
+[usuario@formacion ~]$ head -n 5 texto_grep 
+GREP(1)                     General Commands Manual                    GREP(1)
+
+NAME
+       grep, egrep, fgrep - print lines matching a pattern
+
+
+
+
+
+[usuario@formacion ~]$ tail texto_grep 
+
+              info grep
+
+       should give you access to the complete manual.
+
+NOTES
+       This  man  page  is maintained only fitfully; the full documentation is
+       often more up-to-date.
+
+User Commands                    GNU grep 3.1                          GREP(1)
+[usuario@formacion ~]$ 
+[usuario@formacion ~]$ tail -n 5 texto_grep
+NOTES
+       This  man  page  is maintained only fitfully; the full documentation is
+       often more up-to-date.
+
+User Commands                    GNU grep 3.1                          GREP(1)
+
+
+
+
+-- TAIL FOLLOW
+-- Muy útil para ficheros de log
+
+[usuario@formacion ~]$ touch file5
+[usuario@formacion ~]$ echo "texto1" >> file5
+[usuario@formacion ~]$ echo "texto2" >> file5
+[usuario@formacion ~]$ echo "texto3" >> file5
+[usuario@formacion ~]$ echo "texto4" >> file5
+[usuario@formacion ~]$ 
+
+
+[usuario@formacion ~]$ tail file5
+texto1
+[usuario@formacion ~]$ tail file5
+texto1
+texto2
+[usuario@formacion ~]$ tail -f file5
+texto1
+texto2
+texto3
+texto4
+
+
+
+[root@formacion ~]# tail -f /var/log/secure
+
+
+
+-- Tee
+-- Genera salida estándar de lo que entra por la entrada estándar y ademas a un archivo
+
+[usuario@formacion ~]$ find ./ -name "file*" | tee archivosalidatee
+
+
+
+-- sed
+
+cat /etc/passwd
+cat /etc/passwd | grep usuario
+
+[usuario@formacion ~]$ cat /etc/passwd | grep usuario | sed 's/usuario/usuario2/'
+usuario2:x:1000:1000:usuario:/home/usuario:/bin/bash
+[usuario@formacion ~]$ cat /etc/passwd | grep usuario | sed 's/usuario/usuario2/2'
+usuario:x:1000:1000:usuario2:/home/usuario:/bin/bash
+[usuario@formacion ~]$ cat /etc/passwd | grep usuario | sed 's/usuario/usuario2/3'
+usuario:x:1000:1000:usuario:/home/usuario2:/bin/bash
+[usuario@formacion ~]$ cat /etc/passwd | grep usuario | sed 's/usuario/usuario2/4'
+usuario:x:1000:1000:usuario:/home/usuario:/bin/bash
+[usuario@formacion ~]$ cat /etc/passwd | grep usuario | sed 's/usuario/usuario2/g'
+usuario2:x:1000:1000:usuario2:/home/usuario2:/bin/bash
+
+
+
+
+CONTINUAR EN PÁGINA 83
