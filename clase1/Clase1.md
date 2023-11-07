@@ -181,7 +181,7 @@ El libro que tenemos va de red hat pero lo usaremos para Rocky Linux porque func
 
 Hay que ir a la carpeta de la máquina virtual y crear una carpeta compartida
 
-Luego en la máquina virtual hay que ir a la carpeta /mnt y crear una carpeta con el nombre que queramos (en este caso carpeta_compartida) esto es para hacer un montaje temporal
+Luego en la máquina virtual hay que ir a la carpeta /mnt y crear una carpeta con el nombre que queramos (en este caso carpeta_compartida) esto es para hacer un montaje temporal.
 
 ```bash
 [usuario@formacion ~]$ su -
@@ -202,7 +202,9 @@ fff.txt
 
 ```
 
-Luego iniciamos un nautilus (explorador de archivos) y vamos a la carpeta /mnt y veremos la carpeta compartida
+Luego iniciamos un nautilus (explorador de archivos) y vamos a la carpeta /mnt y veremos la carpeta compartida.
+
+Si montamos en una carpeta con datos existentes, estos datos quedarían ocultos (no se verían) hasta que desmontemos la carpeta compartida, y mientras esté la carpeta montada se verían sólo los datos de la carpeta compartida.
 
 ```bash
 # Iniciar un Nautlius: alt + f2 nautilus
