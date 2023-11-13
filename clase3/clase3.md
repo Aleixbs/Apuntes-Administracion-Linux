@@ -402,3 +402,359 @@ ver números de UID y GID en el ls\_
 ls -lanh
 
 ![Alt text](image.png)
+
+## Página 68/90 Permisos de los archivos
+
+l - vinculo
+d - directorio
+
+- - archivo
+
+rwxrwxrwx
+
+rwx - propietario
+rwx - grupo
+rwx - otros
+
+r - read
+w - write
+x - execute (entrar en el directorio o ejecutar el archivo)
+
+Modo octal
+r - 4
+w - 2
+x - 1
+
+Modo binario
+rwx - 111
+rw- - 110
+r-x - 101
+r-- - 100
+-wx - 011
+-w- - 010
+--x - 001
+--- - 000
+
+## con el chmod se pueden cambiar los permisos de los archivos
+
+Por ejemplo:
+
+Modo octal
+
+```bash
+[root@formacion ~]# chmod 777 /etc/passwd
+```
+
+```bash
+[root@formacion ~]# ls -lah /etc/passwd
+-rwxrwxrwx. 1 root root 2.0K Nov 13 16:02 /etc/passwd
+```
+
+```bash
+[root@formacion ~]# chmod 644 /etc/passwd
+```
+
+```bash
+[root@formacion ~]# ls -lah /etc/passwd
+-rw-r--r--. 1 root root 2.0K Nov 13 16:02 /etc/passwd
+```
+
+## y con el chown se pueden cambiar los propietarios de los archivos
+
+Por ejemplo:
+
+```bash
+[root@formacion ~]# chown u1:u1 /etc/passwd
+```
+
+```bash
+[root@formacion ~]# ls -lah /etc/passwd
+-rw-r--r--. 1 u1 u1 2.0K Nov 13 16:02 /etc/passwd
+```
+
+```bash
+[root@formacion ~]# chown root:root /etc/passwd
+```
+
+```bash
+[root@formacion ~]# ls -lah /etc/passwd
+-rw-r--r--. 1 root root 2.0K Nov 13 16:02 /etc/passwd
+```
+
+Con el modo se puede cambiar la recursividad (La carpeta y los archivos dentro de la carpeta)
+
+chmod -R
+chown -R
+
+```bash
+[root@formacion ~]# chmod -R 777 /etc/passwd
+```
+
+```bash
+[root@formacion ~]# ls -lah /etc/passwd
+-rwxrwxrwx. 1 root root 2.0K Nov 13 16:02 /etc/passwd
+```
+
+Modo por letras
+
+```bash
+[root@formacion ~]# chmod u+x /etc/passwd
+```
+
+```bash
+[root@formacion ~]# ls -lah /etc/passwd
+-rwxr--r--. 1 root root 2.0K Nov 13 16:02 /etc/passwd
+```
+
+```bash
+[root@formacion ~]# chmod g+x /etc/passwd
+```
+
+```bash
+[root@formacion ~]# ls -lah /etc/passwd
+-rwxr-xr--. 1 root root 2.0K Nov 13 16:02 /etc/passwd
+```
+
+```bash
+[root@formacion ~]# chmod o+x /etc/passwd
+```
+
+```bash
+[root@formacion ~]# ls -lah /etc/passwd
+-rwxr-xr-x. 1 root root 2.0K Nov 13 16:02 /etc/passwd
+```
+
+```bash
+[root@formacion ~]# chmod u-x /etc/passwd
+```
+
+```bash
+[root@formacion ~]# ls -lah /etc/passwd
+-rw-r-xr-x. 1 root root 2.0K Nov 13 16:02 /etc/passwd
+```
+
+Cómo hacerlo con
+
+## SCRIPTS EN BASH
+
+Todos los scripts empiezan con:
+
+#!/bin/bash
+
+Por lo tanto todo el contenido del script se ejecuta en bash.
+
+Por ejemplo se puede instanciar:
+
+#!/usr/bin/python
+
+Y todo el contenido del script se ejecutará en python.
+
+Hacer un script:
+
+```bash
+[root@formacion ~]# nano script.sh
+```
+
+```bash
+#!/bin/bash
+
+echo "Hola mundo"
+```
+
+### PERMISOS AVANZADOS
+
+## Sticky bit
+
+El sticky bit es un permiso especial que se puede poner en los archivos.
+
+```bash
+[root@formacion ~]# chmod +t /etc/passwd
+```
+
+```bash
+[root@formacion ~]# ls -lah /etc/passwd
+-rw-r-xr-t. 1 root root 2.0K Nov 13 16:02 /etc/passwd
+```
+
+Se suele utilizar en carpetas en las que se da permiso de escritura a todos los usuarios.
+
+En este caso sólo el propietario del archivo puede borrarlo.
+
+## SGID
+
+El SGID es un permiso especial que se puede poner en los archivos.
+
+Se suele utilizar en carpetas en las que se da permiso de escritura a todos los usuarios.
+
+En este caso todos los archivos que se creen en la carpeta tendrán el grupo del directorio. Por lo tanto un fichero con estos permisos se ejecuta con los permisos del grupo
+
+```bash
+[root@formacion ~]# chmod g+s /etc/passwd
+```
+
+```bash
+[root@formacion ~]# ls -lah /etc/passwd
+-rwSr-xr-x. 1 root root 2.0K Nov 13 16:02 /etc/passwd
+```
+
+## SUID
+
+El SUID es un permiso especial que se puede poner en los archivos.
+
+Se suele utilizar en carpetas en las que se da permiso de escritura a todos los usuarios.
+
+En este caso todos los archivos que se creen en la carpeta tendrán el grupo del directorio. Por lo tanto un fichero con estos permisos se ejecuta con los permisos del usuario que lo creó.
+
+```bash
+[root@formacion ~]# chmod u+s /etc/passwd
+```
+
+```bash
+[root@formacion ~]# ls -lah /etc/passwd
+-rwsr-xr-x. 1 root root 2.0K Nov 13 16:02 /etc/passwd
+```
+
+Estos archivos se pueden ejecutar con los permisos del usuario que lo creó. Por ejemplo (root) pero estos usuarios no pueden modificar el archivos. Normalmente se usa para programas de administración. Por ejemplo al cambiar la contraseña se usa el SUID.
+
+## ACL
+
+Los permisos de los archivos se pueden cambiar con ACL.
+
+ACL - Access Control List
+
+```bash
+[root@formacion ~]# getfacl /etc/passwd
+```
+
+```bash
+[root@formacion ~]# setfacl -m u:u1:rwx /etc/passwd
+```
+
+```bash
+[root@formacion ~]# getfacl /etc/passwd
+```
+
+Sobre un mismo archivo se pueden aplicar varios permisos especiales.
+
+Muy importante
+
+También se pueden aplicar permisos especiales a los directorios.
+
+```bash
+[root@formacion ~]# setfacl -m u:u1:rwx /etc/
+```
+
+## SELINUX
+
+SELINUX es un sistema de seguridad que se puede configurar para que los usuarios tengan permisos de acceso a los archivos.
+
+```bash
+[root@formacion ~]# getenforce
+```
+
+```bash
+[root@formacion ~]# setenforce 0
+```
+
+## MASK /UMASK
+
+Se usa cuándo un archivo se crea antes de poder aplicar los permisos.
+
+Pues es una máscara que se aplica a los permisos.
+
+Con setfacl se puede aplicar una máscara a los permisos.
+
+```bash
+[root@formacion ~]# setfacl -m m:rwx /etc/passwd
+```
+
+Con un getfacl se puede ver la máscara aplicada.
+
+```bash
+[root@formacion ~]# getfacl /etc/passwd
+```
+
+Esto se haría de forma recursiva con un -R
+
+```bash
+[root@formacion ~]# setfacl -R -m m:rwx /etc/passwd
+```
+
+También se aplica cuándo una carpeta ha sido compromeida y se quiere quitar los permisos de ejecución.
+
+### UMASK
+
+Página 156
+
+Es un comando que se puede usar para cambiar los permisos de los archivos que se crean.
+
+Un valor que se resta a los permisos que se quieren aplicar. (valor básico)
+
+Cuándo se crea una carpeta root
+
+```bash
+[root@formacion ~]# mkdir /test
+```
+
+```bash
+[root@formacion ~]# ls -lah /test
+total 8.0K
+drwxr-xr-x.  2 root root   23 Nov 13 16:02 .
+dr-xr-x---. 18 root root 4.0K Nov 13 16:02 ..
+```
+
+Cuándo el root crea una carpeta es diferente a cuándo un usuario crea una carpeta.
+
+Eso es porqué el UMASK del root es diferente al UMASK de un usuario.
+
+Si un usuario crea una carpeta:
+
+```bash
+[root@formacion ~]# su - u1
+Last login: Sat Nov 13 16:02:44 UTC 2021 on pts/0
+[u1@formacion ~]$ mkdir /test2
+[u1@formacion ~]$ ls -lah /test2
+total 8.0K
+drwxr-xr-x.  2 u1 u1   23 Nov 13 16:02 .
+dr-xr-x---. 18 root root 4.0K Nov 13 16:02 ..
+```
+
+Estos cálculos se hacen mediante los valores de octales.
+
+Los UMASK :
+
+El root crea con un -022
+El usuario crea con un -002
+
+Estos valores se pueden cambiar llamando al comando UMASK
+
+```bash
+[root@formacion ~]# umask 000
+```
+
+En este caso se generará con todos los permisos la nueva carpeta
+
+Valores de UMASK de archivos al crearse:
+
+Carpeta nueva - 777
+Archivo nuevo - 666
+
+El UMASK se calcula:
+
+Carpeta nueva - root = 777 - 022 = 755
+Carpeta nueva - usuario = 777 - 002 = 775
+
+Archivo nuevo - root = 666 - 022 = 644
+Archivo nuevo - usuario = 666 - 002 = 664
+
+## DIFERENCIAS ENTRE TAR Y GZIP
+
+página 90
+
+TAR - Es un comando que se usa para empaquetar archivos.
+GZIP - Es un comando que se usa para comprimir archivos.
+
+Con Tar se podría usar para generar copias de seguridad de carpetas y archivos.
+
+man -tar
+man -gzip

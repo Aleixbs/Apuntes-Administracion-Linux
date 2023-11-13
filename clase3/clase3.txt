@@ -1,0 +1,516 @@
+-- Código: 13.11.2023
+
+-- Instalar terminator:
+su -
+yum install terminator
+
+
+-- Gestión de usuarios
+-- Página 127
+
+-- /etc/passwd
+-- Lista de usuarios
+cat /etc/passwd
+
+-- UID por debajo de 1000: sistema
+-- Usuarios normales 1000>
+-- Root: 0
+
+-- /etc/group
+-- Grupos de los usuarios
+
+
+
+id 
+  -- Proporciona información del uid / gid y grupos de los que forma parte la sesisón de usuario
+
+
+-- /etc/shadow
+-- Contiene las contraseñas cifradas de los usuarios
+
+-- /etc/login.defs
+-- Configuración de la creación (mediante comandos) de usuarios y grupos
+-- Configuraicón de políticas de caducidad de contraseña
+-- Parámetros de umask, y modo de creación del home
+
+-- /etc/skel
+
+cd /etc/skel
+
+nano .bashrc
+
+
+/* Añadir:
+
+# User specific aliases and functions
+export JAVA_HOME=/opt/java/bin
+
+*/
+
+
+nano bienvenida
+
+/*
+Bienvenido a la empresa.
+Se ha creado su cuenta de usuario
+*/
+
+-- Añadir u1:
+useradd u1
+
+cat /etc/passwd
+
+-- Aparece u1, con UID: 5000
+
+cat /etc/group
+
+-- Aparece u1, con GID: 5000
+
+cat /etc/shadow
+
+-- Aparece con u1:!!
+
+cd /home
+ls -lah
+
+
+-- Crear contraseña para u1:
+-- Como root:
+
+passwd u1
+  -- u1
+
+
+cat /etc/shadow
+
+
+
+-- Crear usuario manual
+-- Como root:
+nano /etc/passwd
+
+/* Añadir:
+u2:x:5001:5001::/home/u2:/bin/bash
+*/
+
+nano /etc/group
+
+/* Añadir:
+u2:x:5001:
+*/
+
+passwd u2
+   -- u2 (dos veces)
+
+cat /etc/shadow
+
+mkdir /home/u2
+
+cp -af /etc/skel/. /home/u2
+
+chmod 700 /home/u2
+chown -R u2:u2 /home/u2
+
+cd /home
+ls -lah
+cd u2
+ls -lah
+
+
+-- Probar login
+su - u2
+  -- u2
+
+pwd
+echo $JAVA_HOME
+cat bienvenida
+
+
+-- Ver números de UID y GID en ls:
+
+ls -ln
+ls -lahn
+
+
+
+-- PRÁCTICA GESTIÓN DE USUARIOS
+
+Crear a los usuarios u10, u11:
+- Modificando el fichero de configuración, para comenzar en 10000
+
+su -
+
+nano /etc/login.defs
+
+/*
+UID_MIN                 10000
+UID_MAX                 60000
+# System accounts
+SYS_UID_MIN               201
+SYS_UID_MAX               999
+
+#
+# Min/max values for automatic gid selection in groupadd
+#
+GID_MIN                 10000
+GID_MAX                 60000
+# System accounts
+SYS_GID_MIN               201
+SYS_GID_MAX               999
+
+*/
+
+- Modificando el skel para añadir un fichero denominado: cuenta_usuario_creada
+
+touch /etc/skel/cuenta_usuario_creada
+
+- El u10 en lugar de /bin/bash -> /bin/sh (intérprete de comandos)
+adduser -s /bin/sh u10
+
+
+- El u11 debe pertencer también al grupo u10 (como grupo adicional)
+useradd u11 -G u10
+
+cd /home
+ls -lah
+cd /home/u10
+ls -lah
+
+
+
+
+-- PERMISOS BÁSICOS DEL SISTEMA OPERATIVO / SISTEMA DE ARCHIVOS
+
+-rwxrwxrwx
+rwx - Usuario
+rwx - Grupo
+rwx - Others
+
+chmod u|g|o|a +|- r|w|x objeto
+
+ejemplo:
+chmod u+x fichero_ejecutable.sh
+
+
+
+chown
+chown owner:group objeto
+
+-- Como root
+mkdir /datos
+
+-- Crear grupo datos y añadir a u1 y u2
+nano /etc/group
+/*
+datos:x:10002:u1,u2
+*/
+
+-- Iniciar sesión con los usuarios
+
+-- Cambiar grupo propietario de /datos
+-- como root:
+chown :datos /datos
+
+-- Como u1 y u2 y u3
+cd /datos
+  -- Pueden entrar
+
+touch file
+  -- Error
+
+-- Como root:
+-- Crear script
+
+nano script.sh
+/* Contenido:
+#!/bin/bash
+echo "Script ejecutado"
+*/
+
+
+-- Root, permiso de ejecución de script
+chmod u+x script.sh
+
+./script.sh
+   -- correcto para root
+  -- Error para u1, u2, u3
+
+chmod g+x script.sh
+chown :datos script.sh
+
+-- u1 y u2 pueden ejecutar
+-- u3 no
+
+-- u1 y u2 no pueden modificar el contenido del script
+-- pero si se cambian los permisos de la carpeta a rwxrwxr-x
+-- u1 y u2 podrán crear ficheros dentro
+-- Ruta absoluta:
+chmod g+w /datos
+-- Ruta relativa:
+chmod g+w ./
+
+
+-- u1 crea un archivo similar al script de root
+-- u1:
+chmod u+x script2.sh
+chmod g+x script2.sh
+
+-- u1 puede ejecutar el script
+-- u2 y u3 no pueden
+-- Situación actual
+-rwxrwxr--.  1 u1   u1     62 Nov 13 18:05 script2.sh
+
+
+-- Como u1:
+chown :datos script2.sh
+
+-rwxrwxr--.  1 u1   datos  62 Nov 13 18:05 script2.sh
+
+-- Como u2:
+[u2@formacion datos]$ ./script2.sh 
+Script ejecutado
+Modificado por u1
+[u2@formacion datos]$ 
+[u2@formacion datos]$ nano script2.sh 
+[u2@formacion datos]$ 
+[u2@formacion datos]$ ./script2.sh 
+Script ejecutado
+Modificado por u1
+Modificado por u2
+
+
+-- u3 no puede ejecutar ni modificar, solo leer
+-- como u1:
+chmod o+x script2.sh
+
+-rwxrwxr-x.  1 u1   datos  87 Nov 13 18:09 script2.sh
+
+
+-- u3 puede ejecutar, pero no modificar
+[u3@formacion datos]$ ./script2.sh 
+Script ejecutado
+Modificado por u1
+Modificado por u2
+
+-- u2, tiene rwx, pero no puede cambiar el grupo propietario de un archivo que no es suyo
+[u2@formacion datos]$ chown :u2 ./script2.sh
+chown: changing group of './script2.sh': Operation not permitted
+[u2@formacion datos]$ ls -lah
+total 8.0K
+drwxrwxr-x.  2 root datos  41 Nov 13 18:05 .
+dr-xr-xr-x. 19 root root  249 Nov 13 17:49 ..
+-rwxrwxr-x.  1 u1   datos  87 Nov 13 18:09 script2.sh
+
+-- u1 intenta cambair el propietario de un archivo propio y "dárselo" a u2: error
+[u1@formacion datos]$ chown u2 script2.sh
+chown: changing ownership of 'script2.sh': Operation not permitted
+[u1@formacion datos]$ ls -lah
+total 8.0K
+drwxrwxr-x.  2 root datos  41 Nov 13 18:05 .
+dr-xr-xr-x. 19 root root  249 Nov 13 17:49 ..
+-rwxrwxr-x.  1 u1   datos  87 Nov 13 18:09 script2.sh
+
+
+-- MODO OCTAL
+r: 4
+w: 2
+x: 1
+
+rwx: 7
+r-x: 5
+rw-: 6
+r--: 4
+
+
+rwxrwxr-x: 775
+touch p1
+chmod 775 p1
+
+
+-- Recursividad
+chmod -R modo carpeta (lo cambiaría a la carpeta y sus contenidos)
+chown -R u:g objeto (lo cambiaría al objeto y su contenido)
+
+
+-- Sticky bit
+-- Como root:
+chmod 777 /datos
+
+-- Como u3:
+touch f3
+chmod o+w f3
+
+-- Como u2:
+rm f3
+ -- Se borra el archivo
+
+-- Como root:
+-- Establecer el sticky bit
+chmod o+t /datos
+
+
+drwxrwxrwt.  2 root datos  61 Nov 13 18:23 .
+dr-xr-xr-x. 19 root root  249 Nov 13 17:49 ..
+-rw-rw-rw-.  1 u3   u3      0 Nov 13 18:23 f3
+-rwxrwxr-x.  1 u1   u1      0 Nov 13 18:15 p1
+-rwxrwxr-x.  1 u1   datos  87 Nov 13 18:09 script2.sh
+-rwxr-xr--.  1 root datos  37 Nov 13 17:57 script.sh
+[u2@formacion datos]$ rm f3
+rm: cannot remove 'f3': Operation not permitted
+
+-- Con sticky bit, un usuairo que tiene w sobre un archivo
+-- no puede eliminarlo si no es de su propiedad
+
+
+-- Ver documentación: 159 en adelante suid sgid sticky bit
+
+-- PERMISOS ADICIONALES - ACLS
+-- getfacl / setfacl
+
+-- u1 crea s1.sh
+[u1@formacion datos]$ chmod u+x s1.sh 
+[u1@formacion datos]$ ls -lah
+total 12K
+drwxrwxrwt.  2 root datos  64 Nov 13 18:32 .
+dr-xr-xr-x. 19 root root  249 Nov 13 17:49 ..
+-rwxrwxr-x.  1 u1   u1      0 Nov 13 18:15 p1
+-rwxrw-r--.  1 u1   u1     32 Nov 13 18:32 s1.sh
+
+
+
+setfacl -m u:u3:rwx s1.sh
+
+
+drwxrwxrwt.  2 root datos  64 Nov 13 18:32 .
+dr-xr-xr-x. 19 root root  249 Nov 13 17:49 ..
+-rwxrwxr-x.  1 u1   u1      0 Nov 13 18:15 p1
+-rwxrwxr--+  1 u1   u1     32 Nov 13 18:32 s1.sh
+- el + al final indica que s1.sh tiene ACLs
+
+[u3@formacion datos]$ getfacl s1.sh
+# file: s1.sh
+# owner: u1
+# group: u1
+user::rwx
+user:u3:rwx
+group::rw-
+mask::rwx
+other::r--
+
+[u3@formacion datos]$ ./s1.sh
+S1 ejecutado
+[u3@formacion datos]$ nano s1.sh
+[u3@formacion datos]$ ./s1.sh
+S1 ejecutado
+Modificado por u3
+
+-- Dar privilegios al grupo datos, sin cambiar el grupo propoietario del archivo:
+setfacl -m g:datos:r-x s1.sh
+
+getfacl s1.sh
+
+
+[u2@formacion datos]$ ./s1.sh
+S1 ejecutado
+Modificado por u3
+[u2@formacion datos]$ nano s1.sh
+ -- unwritable
+
+
+
+-- MASK 
+
+[u1@formacion datos]$ setfacl -m m:r-- s1.sh
+[u1@formacion datos]$ getfacl s1.sh
+# file: s1.sh
+# owner: u1
+# group: u1
+user::rwx
+user:u3:rwx			#effective:r--
+group::rw-			#effective:r--
+group:datos:r-x			#effective:r--
+mask::r--
+other::r--
+
+
+
+[u3@formacion datos]$ ./s1.sh
+-bash: ./s1.sh: Permission denied
+[u3@formacion datos]$ 
+[u3@formacion datos]$ nano s1.sh
+  -- unwritable
+
+[u2@formacion datos]$ ./s1.sh
+-bash: ./s1.sh: Permission denied
+
+[u1@formacion datos]$ setfacl -m m:rwx s1.sh
+[u1@formacion datos]$ getfacl s1.sh
+# file: s1.sh
+# owner: u1
+# group: u1
+user::rwx
+user:u3:rwx
+group::rw-
+group:datos:r-x
+mask::rwx
+other::r--
+
+ 
+
+--  UMASK
+--  Página 156
+
+-- Carpeta: 777 - umask del usuario = resultado final
+-- Fichero: 666 - umask del usuario = resultado final
+
+ 
+
+-- TAR + GZIP similar ZIP
+-- Empaquetar
+
+-- Copia de seguridad de /etc:
+-- Como root:
+cd /root
+
+tar -cf etc20231113.tar /etc
+
+mkdir destar
+mv etc20231113.tar destar
+cd destar
+tar xvf destar
+ls
+-- Se desempaqueta el fichero .tar
+
+-- Comprimir con GZIP
+-rw-r--r--. 1 root root  30M Nov 13 18:57 etc_2023113.tar
+
+[root@formacion destar]# gzip etc_2023113.tar etc_2023113.tar.gz
+gzip: etc_2023113.tar: No such file or directory
+gzip: etc_2023113.tar.gz already has .gz suffix -- unchanged
+[root@formacion destar]# ls -lah
+total 7.4M
+drwxr-xr-x. 2 root root   32 Nov 13 19:00 .
+dr-xr-x---. 8 root root 4.0K Nov 13 18:58 ..
+-rw-r--r--. 1 root root 7.4M Nov 13 18:57 etc_2023113.tar.gz
+
+
+
+tar xvf etc_2023113.tar.gz
+ -- Descomprime y desempaqueta a la vez
+
+
+gzip - comprime
+gunzip - descomprime
+
+
+-- ZIP / UNZIP
+-- Similar
+-- Backup /etc
+
+zip -9rv etc20231113.zip /etc
+
+unzip etc20231113.zip
+
+
+
+-- VER CP MKDIR MV RM
