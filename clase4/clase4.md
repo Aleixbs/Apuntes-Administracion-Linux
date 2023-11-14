@@ -619,4 +619,335 @@ El mem es la ram del ordenador
 
 El swap es el área de intercambio de disco a ram. Cuándo un OS empieza a usar el swap es que no tiene suficiente ram para ejecutar los procesos que tiene en cola.
 
+### PARTICIONAR EL DISCO
+
+Un disco no se puede usar de forma directa.
+
+Cogemos un disco nuevo y lo abrimos con fdisk
+
+Utilizaremos un tipo de particionado MBR (Master Boot Record)
+
+```bash
+[root@formacion dev]# fdisk /dev/sdc
+
+Welcome to fdisk (util-linux 2.32.1).
+Changes will remain in memory only, until you decide to write them.
+Be careful before using the write command.
+
+Device does not contain a recognized partition table.
+Created a new DOS disklabel with disk identifier 0xb229a37d.
+
+Command (m for help):
+
+```
+
+Nos dice que no esta particionado ni que tiene una etiqueta que procede a etiquetar fdisk porqué el disco no se encontraba etiquetado.
+
+La particion tipica de linux es la 82 para la swap y la 83 para el sistema de archivos.
+
+comando p para ver la tabla de particiones
+
+````bash
+```bash
+Command (m for help): p
+Disk /dev/sdc: 32 GiB, 34359738368 bytes, 67108864 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: dos
+Disk identifier: 0xb229a37d
+
+````
+
+(todo dentro de fdisk)
+Con el comando n se crea una nueva partición
+
+```bash
+Command (m for help): n
+Partition type
+   p   primary (0 primary, 0 extended, 4 free)
+   e   extended (container for logical partitions)
+Select (default p): p
+Partition number (1-4, default 1): 1
+First sector (2048-67108863, default 2048): 2048
+Last sector, +sectors or +size{K,M,G,T,P} (2048-67108863, default 67108863): +8G
+
+Created a new partition 1 of type 'Linux' and of size 8 GiB.
+
+Command (m for help): p
+Disk /dev/sdc: 32 GiB, 34359738368 bytes, 67108864 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: dos
+Disk identifier: 0xb229a37d
+
+Device     Boot Start      End  Sectors Size Id Type
+/dev/sdc1        2048 16779263 16777216   8G 83 Linux
+
+```
+
+Ya hemos creado el sdc1 (aunqeu de momento se encuentra en ram hasta que no le demos al comando w no se escribirá en el disco)
+
+Nueva partición antes de guardar:
+
+```bash
+Command (m for help): n
+Partition type
+   p   primary (1 primary, 0 extended, 3 free)
+   e   extended (container for logical partitions)
+Select (default p): p
+Partition number (2-4, default 2): 2
+First sector (16779264-67108863, default 16779264):
+Last sector, +sectors or +size{K,M,G,T,P} (16779264-67108863, default 67108863): +4G
+
+Created a new partition 2 of type 'Linux' and of size 4 GiB.
+```
+
+Ya en la nueva partición nos sugiere empezar en el sector después del sector en el que acaba el primer disco
+
+Otro disco:
+
+```bash
+Command (m for help): n
+Partition type
+   p   primary (2 primary, 0 extended, 2 free)
+   e   extended (container for logical partitions)
+Select (default p): p
+Partition number (3,4, default 3): 3
+First sector (25167872-67108863, default 25167872):
+Last sector, +sectors or +size{K,M,G,T,P} (25167872-67108863, default 67108863): +4G
+
+Created a new partition 3 of type 'Linux' and of size 4 GiB.
+
+Command (m for help): p
+Disk /dev/sdc: 32 GiB, 34359738368 bytes, 67108864 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: dos
+Disk identifier: 0xb229a37d
+
+Device     Boot    Start      End  Sectors Size Id Type
+/dev/sdc1           2048 16779263 16777216   8G 83 Linux
+/dev/sdc2       16779264 25167871  8388608   4G 83 Linux
+/dev/sdc3       25167872 33556479  8388608   4G 83 Linux
+```
+
+Crear una cuarta particion extendidad:
+
+[en el comando n si no hay valor después de los : significa que se debe pulsar enter]
+
+```bash
+Command (m for help): n
+Partition type
+   p   primary (3 primary, 0 extended, 1 free)
+   e   extended (container for logical partitions)
+Select (default e): e
+
+Selected partition 4
+First sector (33556480-67108863, default 33556480):
+Last sector, +sectors or +size{K,M,G,T,P} (33556480-67108863, default 67108863):
+
+Created a new partition 4 of type 'Extended' and of size 16 GiB.
+
+Command (m for help): p
+Disk /dev/sdc: 32 GiB, 34359738368 bytes, 67108864 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: dos
+Disk identifier: 0xb229a37d
+
+Device     Boot    Start      End  Sectors Size Id Type
+/dev/sdc1           2048 16779263 16777216   8G 83 Linux
+/dev/sdc2       16779264 25167871  8388608   4G 83 Linux
+/dev/sdc3       25167872 33556479  8388608   4G 83 Linux
+/dev/sdc4       33556480 67108863 33552384  16G  5 Extended
+```
+
+el id 83 -- sistema de archivos linux
+el id 5 -- partición extendida
+
+--- Otra partición dentro de la extendida cómo una partición lógica
+
+```bash
+Command (m for help): n
+All primary partitions are in use.
+Adding logical partition 5
+First sector (33558528-67108863, default 33558528):
+Last sector, +sectors or +size{K,M,G,T,P} (33558528-67108863, default 67108863): +8G
+
+Created a new partition 5 of type 'Linux' and of size 8 GiB.
+
+Command (m for help): p
+Disk /dev/sdc: 32 GiB, 34359738368 bytes, 67108864 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: dos
+Disk identifier: 0xb229a37d
+
+Device     Boot    Start      End  Sectors Size Id Type
+/dev/sdc1           2048 16779263 16777216   8G 83 Linux
+/dev/sdc2       16779264 25167871  8388608   4G 83 Linux
+/dev/sdc3       25167872 33556479  8388608   4G 83 Linux
+/dev/sdc4       33556480 67108863 33552384  16G  5 Extended
+/dev/sdc5       33558528 50335743 16777216   8G 83 Linux
+```
+
+Guardar los cambios:
+
+```bash
+Command (m for help): w
+The partition table has been altered.
+Calling ioctl() to re-read partition table.
+Syncing disks.
+```
+
+Ver los cambios en los discos dentro de dev:
+
+[root@formacion dev]# pwd
+/dev
+
+```bash
+[root@formacion dev]# ls -lah sd*
+brw-rw----. 1 root disk 8,  0 Nov 14 18:18 sda
+brw-rw----. 1 root disk 8,  1 Nov 14 18:18 sda1
+brw-rw----. 1 root disk 8, 16 Nov 14 15:07 sdb
+brw-rw----. 1 root disk 8, 17 Nov 14 18:31 sdb1
+brw-rw----. 1 root disk 8, 32 Nov 14 18:53 sdc
+brw-rw----. 1 root disk 8, 33 Nov 14 18:53 sdc1
+brw-rw----. 1 root disk 8, 34 Nov 14 18:53 sdc2
+brw-rw----. 1 root disk 8, 35 Nov 14 18:53 sdc3
+brw-rw----. 1 root disk 8, 36 Nov 14 18:53 sdc4
+brw-rw----. 1 root disk 8, 37 Nov 14 18:53 sdc5
+brw-rw----. 1 root disk 8, 48 Nov 14 15:07 sdd
+```
+
+#### Formateo de discos
+
+Sistemas
+
+(si no hay journal si se apaga sin guardar se pierde la información)
+
+-- Formatear
+-- mkfs
+/\*
+Linux:
+ext2 -> No tiene Journal (muy rápido) (no se usa casi)
+ext3 -> Tiene Journal
+ext4 -> Mejora ext4
+
+xfs -> Red Hat (lvm puede instantáneas)
+
+btrfs
+
+zfs -> Solaris
+
+Windows:
+FAT16-32
+NTFS
+XFAT
+\*/
+
+mkfs -t tipo_formato
+--o
+mkfs.tipo_formato
+
+##### mkfs
+
+```bash
+[root@formacion dev]# tldr mkfs
+
+  mkfs
+
+  Build a Linux filesystem on a hard disk partition.
+  This command is deprecated in favor of filesystem specific mkfs.type utils.
+  More information: https://manned.org/mkfs.
+
+  - Build a Linux ext2 filesystem on a partition:
+    mkfs path/to/partition
+
+  - Build a filesystem of a specified type:
+    mkfs -t ext4 path/to/partition
+
+  - Build a filesystem of a specified type and check for bad blocks:
+    mkfs -c -t ntfs path/to/partition
+
+```
+
+FORMATEAR EL DISCO:
+
+Prueba con ext4
+
+```bash
+[root@formacion dev]# mkfs.ext4 /dev/sdc1
+mke2fs 1.45.6 (20-Mar-2020)
+Creating filesystem with 2097152 4k blocks and 524288 inodes
+Filesystem UUID: 6a4960b9-4da1-4ad2-861e-06a785a28c59
+Superblock backups stored on blocks:
+	32768, 98304, 163840, 229376, 294912, 819200, 884736, 1605632
+
+Allocating group tables: done
+Writing inode tables: done
+Creating journal (16384 blocks): done
+Writing superblocks and filesystem accounting information: done
+```
+
+**Una vez se encuentre el disco formateado ya podremos montarlo.**
+
+Prueba con xfs
+
+```bash
+[root@formacion dev]# mkfs.xfs /dev/sdc2
+meta-data=/dev/sdc2              isize=512    agcount=4, agsize=262144 blks
+         =                       sectsz=512   attr=2, projid32bit=1
+         =                       crc=1        finobt=1, sparse=1, rmapbt=0
+         =                       reflink=1
+data     =                       bsize=4096   blocks=1048576, imaxpct=25
+         =                       sunit=0      swidth=0 blks
+naming   =version 2              bsize=4096   ascii-ci=0, ftype=1
+log      =internal log           bsize=4096   blocks=2560, version=2
+         =                       sectsz=512   sunit=0 blks, lazy-count=1
+realtime =none                   extsz=4096   blocks=0, rtextents=0
+```
+
 ## CREACIÓN DE SISTEMAS DE ARCHIVOS Y MONTAJES (LWM)
+
+Montar los discos
+
+```bash
+[root@formacion dev]# cd
+[root@formacion ~]# mkdir /datos1
+[root@formacion ~]# mkdir /datos2
+[root@formacion ~]# mount -t ext4 /dev/sdc1 /datos1
+[root@formacion ~]# mount -t xfs /dev/sdc2 /datos2
+[root@formacion ~]# df -h
+Filesystem      Size  Used Avail Use% Mounted on
+devtmpfs        1.9G     0  1.9G   0% /dev
+tmpfs           2.0G     0  2.0G   0% /dev/shm
+tmpfs           2.0G  9.3M  2.0G   1% /run
+tmpfs           2.0G     0  2.0G   0% /sys/fs/cgroup
+/dev/sda1        32G  7.0G   26G  22% /
+tmpfs           393M   40K  393M   1% /run/user/1000
+/dev/sr0         51M   51M     0 100% /run/media/usuario/VBox_GAs_7.0.12
+/dev/sdc1       7.9G   36M  7.4G   1% /datos1
+/dev/sdc2       4.0G   61M  4.0G   2% /datos2
+
+```
+
+hemos montado el disco sdc1 en /datos1 y el disco sdc2 en /datos2
+
+El montaje y datos sobre los atributos:
+
+```bash
+[root@formacion ~]# mount |grep /dev/sdc1
+/dev/sdc1 on /datos1 type ext4 (rw,relatime,seclabel)
+[root@formacion ~]# mount |grep /dev/sdc2
+/dev/sdc2 on /datos2 type xfs (rw,relatime,seclabel,attr2,inode64,logbufs=8,logbsize=32k,noquota)
+```
+
+El montaje no es permanente. Si se reinicia la máquina virtual se perderá el montaje.
+
+Para ello se debe modificar el fichero /etc/fstab

@@ -1,0 +1,732 @@
+-- Código: 14.11.2023
+
+-- Página 85
+
+-- tree
+muestra el contenido, en un arbol
+
+
+-- mkdir
+
+mkdir dir1
+
+mkdir /home/usuario/dir2
+
+[usuario@formacion ~]$ mkdir /home/usuario/dirs/dir3
+mkdir: cannot create directory ‘/home/usuario/dirs/dir3’: No such file or directory
+
+
+mkdir -p /home/usuario/dirs/dir3
+
+-- cp
+-- 
+
+cd 
+cd dirs
+
+cp /etc/passwd ./
+
+cp -r /etc/ ./
+
+-- ./ = /home/usuario/dirs
+
+cp -r /etc/skel/ ./
+ -- Copia toda la carpeta skel, con ocultos, pero creando una carpeta skel
+
+cp -r /etc/skel/* ./
+  -- copia todos los ficheros, pero no los ocultos, sin crear la carpeta skel en ./
+
+cp -raf /etc/skel/. ./
+  -- Copia todos los ficheros, incluyendo los ocultos, sin crear la carpeta skel en la ruta de destino
+
+
+
+-- mv
+-- mueve y/o renombra
+
+[usuario@formacion dirs]$ pwd
+/home/usuario/dirs
+[usuario@formacion dirs]$ tree
+.
+├── bienvenida
+├── cuenta_usuario_creada
+└── dir3
+    ├── fichero1
+    └── fichero2
+
+1 directory, 4 files
+[usuario@formacion dirs]$ 
+
+
+
+[usuario@formacion dirs]$ mv ./dir3/fichero1 ./
+[usuario@formacion dirs]$ tree
+.
+├── bienvenida
+├── cuenta_usuario_creada
+├── dir3
+│   └── fichero2
+└── fichero1
+
+1 directory, 4 files
+
+
+
+[usuario@formacion dirs]$ mv ./fichero1 ./dir3/fichero1cambiado
+[usuario@formacion dirs]$ tree
+.
+├── bienvenida
+├── cuenta_usuario_creada
+└── dir3
+    ├── fichero1cambiado
+    └── fichero2
+
+1 directory, 4 files
+
+
+
+[usuario@formacion dirs]$ mkdir dir2
+[usuario@formacion dirs]$ tree
+.
+├── bienvenida
+├── cuenta_usuario_creada
+├── dir2
+└── dir3
+    ├── fichero1cambiado
+    └── fichero2
+
+2 directories, 4 files
+[usuario@formacion dirs]$ mv dir3/ dir2/
+[usuario@formacion dirs]$ tree
+.
+├── bienvenida
+├── cuenta_usuario_creada
+└── dir2
+    └── dir3
+        ├── fichero1cambiado
+        └── fichero2
+
+2 directories, 4 files
+
+
+
+2 directories, 4 files
+[usuario@formacion dirs]$ mv ./dir2/dir3/ ./dir3nuevo
+[usuario@formacion dirs]$ tree
+.
+├── bienvenida
+├── cuenta_usuario_creada
+├── dir2
+└── dir3nuevo
+    ├── fichero1cambiado
+    └── fichero2
+
+2 directories, 4 files
+
+
+
+-- rm / rmdir
+-- rmdir : borra directorios (tienen que estar vacíos)
+
+[usuario@formacion dirs]$ 
+[usuario@formacion dirs]$ tree
+.
+├── bienvenida
+├── cuenta_usuario_creada
+├── dir2
+└── dir3nuevo
+    ├── fichero1cambiado
+    └── fichero2
+
+2 directories, 4 files
+[usuario@formacion dirs]$ 
+[usuario@formacion dirs]$ rmdir dir2
+[usuario@formacion dirs]$ tree
+.
+├── bienvenida
+├── cuenta_usuario_creada
+└── dir3nuevo
+    ├── fichero1cambiado
+    └── fichero2
+
+1 directory, 4 files
+
+
+[usuario@formacion dirs]$ tree -a
+.
+├── .bash_logout
+├── .bash_profile
+├── .bashrc
+├── bienvenida
+├── cuenta_usuario_creada
+└── dir3nuevo
+    ├── fichero1cambiado
+    ├── fichero2
+    └── .ficheroculto
+
+1 directory, 8 files
+
+
+[usuario@formacion dirs]$ 
+[usuario@formacion dirs]$ rm dir3nuevo/fich*
+[usuario@formacion dirs]$ tree
+.
+├── bienvenida
+├── cuenta_usuario_creada
+└── dir3nuevo
+
+1 directory, 2 files
+[usuario@formacion dirs]$ rmdir dir3nuevo
+rmdir: failed to remove 'dir3nuevo': Directory not empty
+
+[usuario@formacion dirs]$ tree -a
+.
+├── .bash_logout
+├── .bash_profile
+├── .bashrc
+├── bienvenida
+├── cuenta_usuario_creada
+└── dir3nuevo
+    └── .ficheroculto
+
+1 directory, 6 files
+
+
+-- rm
+-- Borra archivos (y con opción -r borra recursivamente incluyendo directorios)
+
+[usuario@formacion dirs]$ tree -a
+.
+├── .bash_logout
+├── .bash_profile
+├── .bashrc
+├── bienvenida
+├── cuenta_usuario_creada
+└── dir3nuevo
+    └── .ficheroculto
+
+1 directory, 6 files
+[usuario@formacion dirs]$ rm dir3nuevo
+rm: cannot remove 'dir3nuevo': Is a directory
+[usuario@formacion dirs]$ 
+[usuario@formacion dirs]$ mkdir dirvacio
+[usuario@formacion dirs]$ rm dirvacio
+rm: cannot remove 'dirvacio': Is a directory
+[usuario@formacion dirs]$ 
+
+[usuario@formacion dirs]$ rm -r dirvacio
+[usuario@formacion dirs]$ 
+[usuario@formacion dirs]$ tree
+.
+├── bienvenida
+├── cuenta_usuario_creada
+└── dir3nuevo
+
+1 directory, 2 files
+
+
+[usuario@formacion dirs]$ rm -r dir3nuevo/
+[usuario@formacion dirs]$ tree -a
+.
+├── .bash_logout
+├── .bash_profile
+├── .bashrc
+├── bienvenida
+└── cuenta_usuario_creada
+
+0 directories, 5 files
+
+
+-- rm pregunta al borrar por ficheros que no son del usuario que está borrando
+[usuario@formacion dir]$ pwd
+/home/usuario/dirs/dir
+[usuario@formacion dir]$ ls -l
+total 0
+-rw-r--r--. 1 u3      u3      0 Nov 14 15:51 file
+-rw-rw-r--. 1 usuario usuario 0 Nov 14 15:51 fileusuario
+[usuario@formacion dir]$ cd ..
+[usuario@formacion dirs]$ rm -r dir
+rm: remove write-protected regular empty file 'dir/file'? n
+rm: cannot remove 'dir': Directory not empty
+[usuario@formacion dirs]$ 
+
+
+-- con -f no pregunta (force)
+
+[usuario@formacion dirs]$ rm -fr dir
+[usuario@formacion dirs]$ 
+[usuario@formacion dirs]$ tree
+.
+├── bienvenida
+└── cuenta_usuario_creada
+
+0 directories, 2 files
+
+
+
+ rm -rf ./
+rm: refusing to remove '.' or '..' directory: skipping './'
+[usuario@formacion dirs]$ 
+[usuario@formacion dirs]$ ls
+bienvenida  cuenta_usuario_creada  dir
+[usuario@formacion dirs]$ rm -rf ./*
+[usuario@formacion dirs]$ ls -lah
+total 16K
+drwxr-xr-x.  2 usuario usuario   62 Nov 14 15:54 .
+drwx------. 21 usuario usuario 4.0K Nov 14 15:18 ..
+-rw-r--r--.  1 usuario usuario   18 Jul 27  2021 .bash_logout
+-rw-r--r--.  1 usuario usuario  141 Jul 27  2021 .bash_profile
+-rw-r--r--.  1 usuario usuario  407 Nov 13 15:56 .bashrc
+
+
+rm -rf ./*
+-- Borra todo el contenido del directorio actual
+-- (sin ficheros ocultos que estén en la "raíz" del pwd)
+
+cd ..
+rm -rf ./dirs
+
+
+-- MIDNIGHT COMMANDER
+-- Como root:
+dnf-3 install mc
+dnf install mc
+yum install mc
+
+
+mc
+
+-- Salir: F10
+--        ESC 0
+
+
+
+-- INSTALAR tldr
+-- Como root:
+su -
+
+dnf-3 install tldr
+yum install tldr
+
+
+-- VINCULOS DUROS Y VINCULOS SIMBOLICOS
+-- Página 88
+
+ln
+
+man ln
+tldr ln
+
+
+-- Crear vínculos duros
+ln origen destinio
+
+-- Crear vínculos simbólicos
+ln -s origen destino
+
+[usuario@formacion datos]$ tree
+.
+├── dir1
+└── passwd
+
+1 directory, 1 file
+
+
+
+[usuario@formacion dir1]$ ln -s /home/usuario/datos/passwd ./
+[usuario@formacion dir1]$ ln -s /home/usuario/datos/passwd ./p1
+[usuario@formacion dir1]$ ln -s ../passwd ./p2
+
+[usuario@formacion dir1]$ ll
+total 0
+lrwxrwxrwx. 1 usuario usuario 26 Nov 14 16:29 p1 -> /home/usuario/datos/passwd
+lrwxrwxrwx. 1 usuario usuario  9 Nov 14 16:30 p2 -> ../passwd
+lrwxrwxrwx. 1 usuario usuario 26 Nov 14 16:28 passwd -> /home/usuario/datos/passwd
+
+
+
+[usuario@formacion datos]$ tree
+.
+├── dir1
+│   ├── p1 -> /home/usuario/datos/passwd
+│   ├── p2 -> ../passwd
+│   └── passwd -> /home/usuario/datos/passwd
+└── passwd
+
+1 directory, 4 files
+[usuario@formacion datos]$ cat passwd
+usuario:x:1000:1000:usuario:/home/usuario:/bin/bash
+vboxadd:x:974:1::/var/run/vboxadd:/bin/false
+[usuario@formacion datos]$ cat dir1/passwd 
+usuario:x:1000:1000:usuario:/home/usuario:/bin/bash
+vboxadd:x:974:1::/var/run/vboxadd:/bin/false
+[usuario@formacion datos]$ cat dir1/p1
+usuario:x:1000:1000:usuario:/home/usuario:/bin/bash
+vboxadd:x:974:1::/var/run/vboxadd:/bin/false
+[usuario@formacion datos]$ cat dir1/p2
+usuario:x:1000:1000:usuario:/home/usuario:/bin/bash
+vboxadd:x:974:1::/var/run/vboxadd:/bin/false
+[usuario@formacion datos]$ echo "Nueva linea" >> ./passwd
+[usuario@formacion datos]$ cat passwd
+usuario:x:1000:1000:usuario:/home/usuario:/bin/bash
+vboxadd:x:974:1::/var/run/vboxadd:/bin/false
+Nueva linea
+[usuario@formacion datos]$ cat dir1/passwd
+usuario:x:1000:1000:usuario:/home/usuario:/bin/bash
+vboxadd:x:974:1::/var/run/vboxadd:/bin/false
+Nueva linea
+
+
+[usuario@formacion ~]$ pwd
+/home/usuario
+[usuario@formacion ~]$ mv datos datos2
+
+
+[usuario@formacion datos2]$ tree
+.
+├── dir1
+│   ├── p1 -> /home/usuario/datos/passwd (VINCULO ROTO)
+│   ├── p2 -> ../passwd
+│   └── passwd -> /home/usuario/datos/passwd (VINCULO ROTO)
+└── passwd
+
+1 directory, 4 files
+
+
+
+-- Privilegios
+-rw-r--r--.  1 usuario usuario  109 Nov 14 16:32 passwd
+
+lrwxrwxrwx. 1 usuario usuario 26 Nov 14 16:29 p1 -> /home/usuario/datos/passwd
+lrwxrwxrwx. 1 usuario usuario  9 Nov 14 16:30 p2 -> ../passwd
+lrwxrwxrwx. 1 usuario usuario 26 Nov 14 16:28 passwd -> /home/usuario/datos/passwd
+
+
+-- inode nodo-i
+35891044 -rw-r--r--. 1 usuario usuario 109 Nov 14 16:32 passwd
+
+-- carpeta dir1:
+ 1443845 lrwxrwxrwx. 1 usuario usuario 26 Nov 14 16:29 p1 -> /home/usuario/datos/passwd
+ 1443846 lrwxrwxrwx. 1 usuario usuario  9 Nov 14 16:30 p2 -> ../passwd
+ 1443844 lrwxrwxrwx. 1 usuario usuario 26 Nov 14 16:28 passwd -> /home/usuario/datos/passwd
+
+
+-- Vínculo duro:
+cd /home/usuario/datos/dir1
+
+[usuario@formacion dir1]$ ln ../passwd ./p3
+[usuario@formacion dir1]$ ls -lah
+total 4.0K
+drwxrwxr-x. 2 usuario usuario  50 Nov 14 16:43 .
+drwxrwxr-x. 3 usuario usuario  32 Nov 14 16:28 ..
+lrwxrwxrwx. 1 usuario usuario  26 Nov 14 16:29 p1 -> /home/usuario/datos/passwd
+lrwxrwxrwx. 1 usuario usuario   9 Nov 14 16:30 p2 -> ../passwd
+-rw-r--r--. 2 usuario usuario 109 Nov 14 16:32 p3
+lrwxrwxrwx. 1 usuario usuario  26 Nov 14 16:28 passwd -> /home/usuario/datos/passwd
+
+
+/home/usuario/datos:
+35891044 -rw-r--r--.  2 usuario usuario  109 Nov 14 16:32 passwd
+/home/usuario/datos/dir1:
+35891044 -rw-r--r--. 2 usuario usuario 109 Nov 14 16:32 p3
+
+-- El inode de un vínculo es el mismo
+-- El valor de representación ha aumentado en 1: 2
+
+
+[usuario@formacion datos]$ pwd
+/home/usuario/datos
+[usuario@formacion datos]$ rm passwd
+[usuario@formacion datos]$ tree
+.
+└── dir1
+    ├── p1 -> /home/usuario/datos/passwd (VINCULO ROTO)
+    ├── p2 -> ../passwd (VINCULO ROTO)
+    ├── p3
+    └── passwd -> /home/usuario/datos/passwd (VINCULO ROTO)
+
+
+1 directory, 4 files
+[usuario@formacion datos]$ 
+
+
+
+
+[usuario@formacion datos]$ cd dir1
+[usuario@formacion dir1]$ ls
+p1  p2  p3  passwd
+[usuario@formacion dir1]$ ll
+total 4
+lrwxrwxrwx. 1 usuario usuario 26 Nov 14 16:29 p1 -> /home/usuario/datos/passwd VINCULO ROOT
+lrwxrwxrwx. 1 usuario usuario  9 Nov 14 16:30 p2 -> ../passwd VINCULO ROTO
+-rw-r--r--. 1 usuario usuario 67 Nov 14 16:47 p3
+lrwxrwxrwx. 1 usuario usuario 26 Nov 14 16:28 passwd -> /home/usuario/datos/passwd VINCULO ROTO
+[usuario@formacion dir1]$ cat p3
+usuario:x:1000:1000:usuario:/home/usuario:/bin/bash
+Texto cambiado
+[usuario@formacion dir1]$ 
+
+
+[usuario@formacion dir1]$ ln /home/usuario/datos/dir1/p3 /home/usuario/datos/passwd
+[usuario@formacion dir1]$ ll
+total 4
+lrwxrwxrwx. 1 usuario usuario 26 Nov 14 16:29 p1 -> /home/usuario/datos/passwd
+lrwxrwxrwx. 1 usuario usuario  9 Nov 14 16:30 p2 -> ../passwd
+-rw-r--r--. 2 usuario usuario 67 Nov 14 16:47 p3
+lrwxrwxrwx. 1 usuario usuario 26 Nov 14 16:28 passwd -> /home/usuario/datos/passwd
+[usuario@formacion dir1]$ 
+
+[usuario@formacion dir1]$ ln p3 /home/usuario/
+[usuario@formacion dir1]$ ls -lah
+total 4.0K
+drwxrwxr-x. 2 usuario usuario 50 Nov 14 16:43 .
+drwxrwxr-x. 3 usuario usuario 32 Nov 14 16:49 ..
+lrwxrwxrwx. 1 usuario usuario 26 Nov 14 16:29 p1 -> /home/usuario/datos/passwd
+lrwxrwxrwx. 1 usuario usuario  9 Nov 14 16:30 p2 -> ../passwd
+-rw-r--r--. 3 usuario usuario 67 Nov 14 16:47 p3
+lrwxrwxrwx. 1 usuario usuario 26 Nov 14 16:28 passwd -> /home/usuario/datos/passwd
+[usuario@formacion dir1]$ 
+
+
+-- 3: Existen 3 respresentaciones del inodo 35891044
+-- Para eliminar el fichero/inodo hay que borrar todas las representaciones
+
+-- Buscar las representaciones de un inode:
+find /home/usuario -inum 35891044
+
+
+[usuario@formacion dir1]$ find /home/usuario -inum 35891044
+/home/usuario/datos/dir1/p3
+/home/usuario/datos/passwd
+/home/usuario/p3
+
+
+-- Limitación
+-- Vínculos simbólicos pueden atravesar sistemas de archivos
+-- Vínculos duros no
+
+
+
+-- Vínculos simbólicos con carpetas
+[usuario@formacion datos]$ tree
+.
+├── dir1
+│   ├── p1 -> /home/usuario/datos/passwd
+│   ├── p2 -> ../passwd
+│   ├── p3
+│   └── passwd -> /home/usuario/datos/passwd
+└── passwd
+
+1 directory, 5 files
+[usuario@formacion datos]$ mkdir dir2
+[usuario@formacion datos]$ tree
+.
+├── dir1
+│   ├── p1 -> /home/usuario/datos/passwd
+│   ├── p2 -> ../passwd
+│   ├── p3
+│   └── passwd -> /home/usuario/datos/passwd
+├── dir2
+└── passwd
+
+2 directories, 5 files
+[usuario@formacion datos]$ cd dir2
+
+
+
+-- directorios con ln:
+[usuario@formacion carpeta]$ ln -s /home/usuario/Downloads/ ./
+[usuario@formacion carpeta]$ ls
+Downloads
+[usuario@formacion carpeta]$ cd Downloads/
+[usuario@formacion Downloads]$ ls
+[usuario@formacion Downloads]$ 
+[usuario@formacion Downloads]$ touch fichero
+[usuario@formacion Downloads]$ ls
+fichero
+[usuario@formacion Downloads]$ pwd
+/home/usuario/datos/dir2/dir1l/carpeta/Downloads
+[usuario@formacion Downloads]$ ls
+fichero
+[usuario@formacion Downloads]$ pwd
+/home/usuario/datos/dir2/dir1l/carpeta/Downloads
+[usuario@formacion Downloads]$ cat fichero
+contenido del archivo
+
+
+
+-- SISTEMAS DE ARCHIVOS
+-- CREACIÓN DE SISTEMAS DE ARCHIVOS
+-- Como root:
+su -
+
+cd /dev
+
+ls -lah sd*
+
+
+-- fdisk
+-- parted
+
+
+-- fdisk
+fdisk /dev/sda
+
+m  -- ayuda
+
+p   -- lista de particiones
+
+
+/*
+Sistema clásico de particionamiento:
+4 particiones principales
+
+1 de las 4 puede ser una partición extendida
+la partición extendida permite particiones adicionales:
+
+En Linux se ve: /dev/sda
+Las particiones principales serían:
+/dev/sda1
+/dev/sda2
+/dev/sda3
+/dev/sda4
+
+Si se crea una partición extendida (solo quedan tres principales)
+las particiones extendidas serían:
+/dev/sda5  (primera particion de la partición extendida)
+/dev/sda6  (segunda particion de la partición extendida)
+/dev/sda7  (tercera particion de la partición extendida)
+/dev/sda8  (cuarta particion de la partición extendida)
+/dev/sdan  (n particion de la partición extendida)
+
+
+
+-- Comandos básicos para ver montajes
+
+-- PUntos de montaje y espacio disponible:
+df -h
+
+-- Configuración del área de intercambio: swap
+swapon
+
+
+-- ACTIVAR SWAP EN LA MÁQUINA VIRTUAL
+-- Como root:
+
+echo "UUID=af791686-6373-4e41-a9de-3afd3e7148db none swap defaults 0 0" >> /etc/fstab
+
+swapon /dev/sdb1
+
+free -m
+
+
+-- CONTINUAR CON PARTICIONAMIENTO
+fdisk /dev/sdc
+
+p -- Lista de particiones
+
+-- Crear nueva particion
+n
+
+-- Primaria
+p
+
+-- Número 
+1
+
+-- 2048 o enter
+2048
+
+-- Fin: 8 GB
++8G
+
+p
+
+-- Otra partición
+n
+p
+2
+[enter] (propone como inicio el sector siguiente a la partición anterior)
++4G
+
+p
+
+-- Otra partición 3
+n
+p
+3
+[enter]
++4G
+
+-- Otra partición 4 -> Extendida
+n
+e
+[enter] (propne el inicio tra sla útlima)
+[enter] (propone el espacio que queda de disco)
+
+p
+
+-- Otra partición 5 (1ª extendida)
+n
+[enter] (primer sector, el propuesto, deja un espacio necesario para metadatos)
++8G
+
+p
+
+-- Grabar el particionado en el disco
+w
+
+
+-- En sistema operativo:
+ls -lah sd*
+
+
+-- Formatear
+-- mkfs
+/*
+Linux:
+ext2 -> No tiene Journal (muy rápido)
+ext3 -> Tiene Journal
+ext4 -> Mejora ext4
+
+xfs -> Red Hat (lvm puede instantáneas)
+
+btrfs 
+
+zfs  -> Solaris 
+
+Windows:
+FAT16-32
+NTFS
+XFAT
+*/
+
+mkfs -t tipo_formato
+--o
+mkfs.tipo_formato
+
+
+-- Formatear /dev/sdc1 como ext4
+
+mkfs.ext4 /dev/sdc1
+
+-- Formatear /dev/sdc2 como xfs
+
+mkfs.xfs /dev/sdc2
+
+-- Montaje:
+mkdir /datos1
+mkdir /datos2
+
+mount -t ext4 /dev/sdc1 /datos1
+mount -t xfs /dev/sdc2 /datos2
+
+df -h
+
+mount
+
+mount |grep /dev/sdc1
+mount |grep /dev/sdc2
+
+-- El montaje no es permanente
+-- /etc/fstab
