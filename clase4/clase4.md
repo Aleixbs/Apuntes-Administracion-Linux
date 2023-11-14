@@ -278,8 +278,9 @@ rm: cannot remove 'dirvacio': Is a directory
 └── dir3nuevo
 ```
 
+#### -- rm pregunta al borrar por ficheros que no son del usuario que está borrando
+
 ```bash
--- rm pregunta al borrar por ficheros que no son del usuario que está borrando
 [usuario@formacion dir]$ pwd
 /home/usuario/dirs/dir
 [usuario@formacion dir]$ ls -l
@@ -292,3 +293,213 @@ rm: remove write-protected regular empty file 'dir/file'? n
 rm: cannot remove 'dir': Directory not empty
 [usuario@formacion dirs]
 ```
+
+#### -- con -f no pregunta (force)
+
+```bash
+[usuario@formacion dirs]$ rm -fr dir
+[usuario@formacion dirs]$
+[usuario@formacion dirs]$ tree
+.
+├── bienvenida
+└── cuenta_usuario_creada
+
+0 directories, 2 files
+```
+
+## ATENCIÓN CON RM -RF y apuntes a la carpeta actual sobretodo si eres el root
+
+_PUEDES LLEGAR A BORRAR TODO EL SISTEMA_
+
+```bash
+[root@formacion dirs]# rm -rf ./*
+```
+
+EJERCICIO:
+
+![Alt text](image.png)
+
+# Programa de linux ---- MIDNIGHT COMANDER
+
+MIDNIGHT COMANDER -- mc
+
+Tres formas de instalarlo
+
+```bash
+[root@formacion dirs]# yum install mc
+```
+
+```bash
+[root@formacion dirs]# dnf install mc
+```
+
+```bash
+[root@formacion dirs]# dnf-3 install mc
+```
+
+![Alt text](image-1.png)
+
+Se usa mucho para facilitarte moverte por el sistema una forma más sencilla.
+
+Ventana izquierda y ventana derecha
+
+EN la parte inferior teclas de función.
+En la parte superior los menús.
+
+En los menús le podemos indicar que queremos ver en el left y en el right.
+
+La forma más correcta de usarlo es usarlo con doble ventana.
+
+Con el tab puedes moverete en ventana.
+
+En ambas partes aparece un tree distinto.
+
+Facilita hacer la copia de archivos de un tree a otro tree de carpetas.
+
+![Alt text](image-2.png)
+
+Con f1 ayuda
+Con f2 menú
+Con f3 ver archivos (lee el archivo y lo muestra)
+Con f4 editar
+Con f5 copias
+Con f6 mueves
+Con f7 creas carpetas
+Con f8 borras
+Con f9 pulldn
+Con f10 salir (puede estar asociado con otras combinaciones de teclado)
+
+Este programa se puede usar en una consola real y facilita mucho el trabajo.
+
+Para salir también vale ESC + 0
+
+### Crear Vínculos simbólicos y vínculos duros
+
+Symbolic and hard links We can have the same file in two places using links. There are two types of links:
+• Hard links: There will be two entries (or more) to the same file in the filesystem. The content will be written once to disk. Hard links for the same file cannot be created in two different filesystems. Hard links cannot be created for directories.
+• Symbolic links: A symbolic link is created pointing to a file or directory in any place in the system.
+Both are created using the ln (which stands for link) utility
+
+```bash
+[usuario@formacion ~]$ tldr ln
+
+  ln
+
+  Creates links to files and directories.
+  More information: https://www.gnu.org/software/coreutils/ln.
+
+  - Create a symbolic link to a file or directory:
+    ln -s /path/to/file_or_directory path/to/symlink
+
+  - Overwrite an existing symbolic link to point to a different file:
+    ln -sf /path/to/new_file path/to/symlink
+
+  - Create a hard link to a file:
+    ln /path/to/file path/to/hardlink
+
+```
+
+Los más habituales son los vínculos simbolicos
+
+```bash
+[usuario@formacion ~]$ ln -s /etc/passwd ./
+
+
+[usuario@formacion ~]$ ll
+total 0
+drwxr-xr-x. 2 root    root     6 Nov  7 16:19 curso
+drwxrwxr-x. 2 usuario usuario 32 Nov  7 19:07 datos
+drwxr-xr-x. 2 usuario usuario 31 Nov 13 17:29 Desktop
+drwxr-xr-x. 2 usuario usuario 59 Nov  7 15:15 Documents
+drwxr-xr-x. 2 usuario usuario  6 Mar 13  2022 Downloads
+drwxr-xr-x. 2 usuario usuario  6 Mar 13  2022 Music
+lrwxrwxrwx. 1 usuario usuario 11 Nov 14 16:26 passwd -> /etc/passwd
+drwxr-xr-x. 2 usuario usuario  6 Mar 13  2022 Pictures
+drwxr-xr-x. 2 usuario usuario  6 Mar 13  2022 Public
+drwxr-xr-x. 2 usuario usuario  6 Mar 13  2022 Templates
+drwxr-xr-x. 2 usuario usuario  6 Mar 13  2022 Videos
+```
+
+Ejemplos: comandos
+
+```bash
+[usuario@formacion dir1]$ ln -s /home/usuario/datos/passwd ./
+[usuario@formacion dir1]$ ln -s /home/usuario/datos/passwd ./p1
+[usuario@formacion dir1]$ ln -s ../passwd ./p2
+```
+
+Ejemplos: resultado de comandos
+
+```bash
+[usuario@formacion dir1]$ ll
+total 0
+lrwxrwxrwx. 1 usuario usuario 26 Nov 14 16:28 passwd -> /home/usuario/datos/passwd
+lrwxrwxrwx. 1 usuario usuario 26 Nov 14 16:29 p1 -> /home/usuario/datos/passwd
+lrwxrwxrwx. 1 usuario usuario  9 Nov 14 16:30 p2 -> ../passwd
+```
+
+En todos los casos now llevará al mismo fichero.
+
+Cuándo sea un directorio, en linux el vínculo simbólico será una parte de la misma ruta.
+
+## Inodo nodo.i
+
+Los nodos i son representacinoes de archivos.
+
+Con el comando ls -i se puede ver el inodo de un archivo.
+
+```bash
+[usuario@formacion dir1]$ ls -i
+total 0
+  131 passwd  131 p1  131 p2
+```
+
+o incorporado con ls -lahi
+
+```bash
+[usuario@formacion dir1]$ ls -lahi
+total 0
+  13134224 lrwxrwxrwx. 1 usuario usuario   26 Nov 14 16:28 passwd -> /home/usuario/datos/passwd
+  13134225 lrwxrwxrwx. 1 usuario usuario   26 Nov 14 16:29 p1 -> /home/usuario/datos/passwd
+  13134226 lrwxrwxrwx. 1 usuario usuario    9 Nov 14 16:30 p2 -> ../passwd
+```
+
+Podemos ver el valor del inodo. O sea el valor numérico del inodo.
+
+El valor numérico antes de la fecha es el valor de bytes que ocupa dentro del OS. En los ficheros es equivalente al contenido que tiene el fichero. En el caso de los inodos el peso equivale a lo largo que es el nombre de la ruta de referencia del inodo.
+
+El número que se encuentra entre los permisos y el usuario/grupo que tienen pprivilegios. En este caso en todos es el número 1.
+
+Este valor es el número de enlaces que tiene el inodo. En este caso todos tienen un enlace.
+
+Los inodos con los vínculos duros tienen el mismo número de inodo. Es el mismo archivo representado varias veces dentro de la jerarquía de archivos. Contienen el mismo contenido y nos indica cuántos inodos hay con el mismo contenido.
+
+La única forma de ver todas las representacionoes de un inodo es con el comando find.
+
+Búscar dónde estan todos las representaciones del mismo inodo:
+
+```bash
+[usuario@formacion dir1]$ find /home/usuario/ -inum 13134224
+/home/usuario/datos/passwd
+/home/usuario/dir1/passwd
+/home/usuario/dir1/p1
+```
+
+Estos tres archivos si tuvieran el mismo número de inodo se mostrarían al representar el -inum del inodo con el número indicado.
+
+##### Limitación de los vínculos
+
+**Los vínculos simbolicos pueden atravesar sistemas de archivos.**
+**Los vínculos duros NO pueden atravesar sistemas de archivos.**
+
+El mismo número de inodos no puede estar en dos sistemas de archivos distintos.
+
+Los vínculos simbolicos pueden apuntar a cualquier parte del sistema de archivos si la estructura de la ruta es la misma en los dos mismos OS.
+
+Entre dos discos distintos (carpetas compartidas como ejemplo)
+
+Un vínculo duro no se podría crear correctamente
+
+Un vínculo simbólico sí se podría crear correctamente
+
+En conclusión la mayoría de veces será mejor usar <span style="color:light-green">vínculos simbolicos.</span>
