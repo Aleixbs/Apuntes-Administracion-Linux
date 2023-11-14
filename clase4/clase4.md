@@ -503,3 +503,120 @@ Un vínculo duro no se podría crear correctamente
 Un vínculo simbólico sí se podría crear correctamente
 
 En conclusión la mayoría de veces será mejor usar <span style="color:light-green">vínculos simbolicos.</span>
+
+## SISTEMAS DE ARCHIVOS
+
+La máquina virtual con la que trabajamos, si miramoos el contenido de la máquina virtual podemos ver los discos que tiene.
+
+LINUX los trata como discos verdaderos. Aunqué realmente sean ficheros de virtualbox.
+
+Los ficheros vdi son los que simulan ser discos. Son los discos virtuales.
+
+Si creas discos virtuales en virtualbox de 64gb de crecimiento dinámico. Estos discos no ocupan 64gb desde el inicio sino que se va a ir incrementando a medida que se vayan guardando elementos en el sistema de archivos. Sino que y los formateas con ext4, el sistema de archivos ext4 no va a ocupar 64gb. Sino que va a ocupar lo que realmente ocupe el sistema de archivos.
+
+Sda ---- rocky85.vdi
+Sdb ---- rocky85_1.vdi
+Sdc ---- rocky85_2.vdi
+Sdd ---- rocky85_3.vdi
+
+![Alt text](image-3.png)
+
+Discos:
+
+[root@formacion dev]# ls -lah sd\*
+brw-rw----. 1 root disk 8, 0 Nov 14 15:07 sda
+brw-rw----. 1 root disk 8, 1 Nov 14 15:07 sda1
+brw-rw----. 1 root disk 8, 16 Nov 14 15:07 sdb
+brw-rw----. 1 root disk 8, 17 Nov 14 15:07 sdb1
+brw-rw----. 1 root disk 8, 32 Nov 14 15:07 sdc
+brw-rw----. 1 root disk 8, 48 Nov 14 15:07 sdd
+
+Controladora SATA o SCSI
+
+En un ordenador de verdad le conectamos discos en una SATA nos los va a mostrar cómo los tenemos en la máquina virtual.
+
+El sda1 o el sdb1 son las particiones que se han creado en el disco.
+
+Para particionar o formatear discos:
+
+ntfs en windows o xfat
+
+En linux se usan generalmlente:
+
+ext4
+
+### Programas de formateo
+
+fdisk (el que se usará en la clase)
+
+parted
+
+#### fdisk
+
+Cuándo llamamos fdisk primero tenemos que llamar a un disco
+
+Debemos tener mucho cuidado.
+
+Nunca se debe poner w + enter sin estar seguro de lo que se está haciendo.
+
+con m + enter se muestra la ayuda
+
+con p + enter se muestra la tabla de particiones
+
+Cada sector tiene 512 bytes si multiplicamos los sectoes por 512 bytes nos da el tamaño del disco.
+
+```bash
+[root@formacion dev]# fdisk sda
+
+Welcome to fdisk (util-linux 2.32.1).
+Changes will remain in memory only, until you decide to write them.
+Be careful before using the write command.
+
+
+Command (m for help): p
+Disk sda: 32 GiB, 34359738368 bytes, 67108864 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: dos
+Disk identifier: 0x90314d28
+
+Device Boot Start      End  Sectors Size Id Type
+sda1   *     2048 67108863 67106816  32G 83 Linux
+
+Command (m for help):
+```
+
+El start empieza al sector 2048 por lo que los primeros 2048 sectores no se pueden usar. Estos primeros sectores serán los que tendrán el motor de arranque del disco, esto pasará en los discos princiaples (dónde esta el cargador de arranque del sistema operativo).
+
+Los sistemas modernos son los que usan arranque UEFI.
+
+El sistema clásico de particionamiento:
+
+4 particiones primarias
+
+1 de las 4 puede ser una partición extendida dónde se pueden crear particiones lógicas adicionales. (cualquier os moderno lo admite)
+
+EN EL LIBRO DE CLASE hay una recomendación de la estructura de carpetas en las particiones del disco.
+
+Configuración del área de intercambio: swap
+
+```bash
+[root@formacion dev]# echo "UUID=af791686-6373-4e41-a9de-3afd3e7148db none swap defaults 0 0" >> /etc/fstab
+[root@formacion dev]# swapon /dev/sdb1
+[root@formacion dev]# free -m
+              total        used        free      shared  buff/cache   available
+Mem:           3928        1334         351          18        2242        2327
+Swap:          8190           0        8190
+[root@formacion dev]#
+```
+
+`[root@formacion dev]# echo "UUID=af791686-6373-4e41-a9de-3afd3e7148db none swap defaults 0 0" >> /etc/fstab` --- Este comando a metido el texto en la salida standard y lo ha redirigido al fichero fstab que es el fichero que el sistema lee al montar los sistemas de archivos.
+
+Le dice que none os que se use para swap que se use el sistema de montaje xfts en modo defaults
+
+El mem es la ram del ordenador
+
+El swap es el área de intercambio de disco a ram. Cuándo un OS empieza a usar el swap es que no tiene suficiente ram para ejecutar los procesos que tiene en cola.
+
+## CREACIÓN DE SISTEMAS DE ARCHIVOS Y MONTAJES (LWM)
