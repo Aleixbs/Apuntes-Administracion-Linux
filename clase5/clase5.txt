@@ -1,0 +1,466 @@
+-- Código: 15.11.2023
+
+-- El montaje de /datos1 y /datos2 no es permanente
+
+mount -t ext4 /dev/sdc1 /datos1
+ -- -t ext4  / -t xfs  no son necesarios, los detecta el SO
+
+-- Desmontar y volver a montar
+umount /dev/sdc1
+umount /datos2
+
+mount /dev/sdc1 /datos1
+mount /dev/sdc2 /datos2
+
+
+[root@formacion dev]# df -h
+Filesystem      Size  Used Avail Use% Mounted on
+devtmpfs        1.9G     0  1.9G   0% /dev
+tmpfs           2.0G     0  2.0G   0% /dev/shm
+tmpfs           2.0G  9.3M  2.0G   1% /run
+tmpfs           2.0G     0  2.0G   0% /sys/fs/cgroup
+/dev/sda1        32G  7.1G   25G  23% /
+tmpfs           393M   64K  393M   1% /run/user/1000
+/dev/sr0         51M   51M     0 100% /run/media/usuario/VBox_GAs_7.0.12
+curso           7.2T  5.5T  1.8T  77% /mnt
+/dev/sdc1       7.9G   36M  7.4G   1% /datos1
+/dev/sdc2       4.0G   61M  4.0G   2% /datos2
+
+
+[root@formacion dev]# mount | grep /dev/sdc
+/dev/sdc1 on /datos1 type ext4 (rw,relatime,seclabel)
+/dev/sdc2 on /datos2 type xfs (rw,relatime,seclabel,attr2,inode64,logbufs=8,logbsize=32k,noquota)
+[root@formacion dev]# 
+
+
+-- Reiniciar máquina
+-- Los puntos de montaje no deberían estar
+reboot
+
+
+df -h
+[root@formacion ~]# df -h
+Filesystem      Size  Used Avail Use% Mounted on
+devtmpfs        1.9G     0  1.9G   0% /dev
+tmpfs           2.0G     0  2.0G   0% /dev/shm
+tmpfs           2.0G  9.3M  2.0G   1% /run
+tmpfs           2.0G     0  2.0G   0% /sys/fs/cgroup
+/dev/sda1        32G  7.1G   25G  22% /
+tmpfs           393M   28K  393M   1% /run/user/1000
+/dev/sr0         51M   51M     0 100% /run/media/usuario/VBox_GAs_7.0.12
+curso           7.2T  5.5T  1.8T  77% /mnt
+
+
+-- DOCUMENTACIÓN
+-- Capítulo 12. Página 335
+
+-- Crear montajes permanentes:
+/etc/fstab
+
+nano /etc/fstab:
+/*
+/dev/sdc1 /datos1 ext4 defaults 0 0
+*/
+
+reboot
+
+df-h
+
+Filesystem      Size  Used Avail Use% Mounted on
+devtmpfs        1.9G     0  1.9G   0% /dev
+tmpfs           2.0G     0  2.0G   0% /dev/shm
+tmpfs           2.0G  9.3M  2.0G   1% /run
+tmpfs           2.0G     0  2.0G   0% /sys/fs/cgroup
+/dev/sda1        32G  7.1G   25G  22% /
+/dev/sdc1       7.9G   36M  7.4G   1% /datos1
+tmpfs           393M   24K  393M   1% /run/user/1000
+/dev/sr0         51M   51M     0 100% /run/media/usuario/VBox_GAs_7.0.12
+curso           7.2T  5.5T  1.8T  77% /mnt
+
+
+-- formas de ver los dispositivos conectados y los blkid
+lsblk
+
+blkid /dev/sdc1
+
+-- Ejemplo para copiar el UUID al /etc/fstab
+blkid /dev/sdc1 >> /etc/fstab
+  -- CUIDADO: >> (si se pone solo > se sobreescribe el fstab)
+
+nano /etc/fstab
+
+-- Rehacer el /etc/fstab
+UUID=6a464459-ea7f-4533-bfd7-a1aacd302170 /                       xfs     defaults	  0 0
+UUID=af791686-6373-4e41-a9de-3afd3e7148db none swap defaults 0 0
+UUID=8d9bd09f-4468-4d26-a62a-d029b93398c7 /datos1 ext4 defaults 0 0
+
+-- Montar permanentenmente /datos2
+-- Como root:
+blkid /dev/sdc2
+
+nano /etc/fstab
+
+/* Añadir (blkid puede ser distinto en cada caso)
+UUID=e6df5a50-06b3-4c55-8d63-5e44096d4d9b /datos2 xfs defaults 0 0
+*/
+
+df -h |grep datos
+
+
+-- No se automáticamente al salir del /etc/fstab
+
+-- /etc/fstab facilita el comando mount
+mount /dev/sdc2
+mount /datos2
+
+[root@formacion ~]# df -h | grep datos
+/dev/sdc1       7.9G   36M  7.4G   1% /datos1
+/dev/sdc2       4.0G   61M  4.0G   2% /datos2
+
+
+-- DEMOSTRACION: mover /home a una particion/disco distintos
+
+-- 1. Crear el sistema de archivos para el nuevo home
+-- fdisk--- /dev/sdc5 (creado previamente)
+
+-- 2. Dar formato a la partición:
+mkfs.xfs /dev/sdc5
+
+-- 3. Carpeta para montar el futuro home
+mkdir /home2
+
+mount /dev/sdc5 /home2
+
+
+[root@formacion /]# df -h
+Filesystem      Size  Used Avail Use% Mounted on
+devtmpfs        1.9G     0  1.9G   0% /dev
+tmpfs           2.0G     0  2.0G   0% /dev/shm
+tmpfs           2.0G  9.3M  2.0G   1% /run
+tmpfs           2.0G     0  2.0G   0% /sys/fs/cgroup
+/dev/sda1        32G  7.1G   25G  22% /
+/dev/sdc1       7.9G   36M  7.4G   1% /datos1
+tmpfs           393M   32K  393M   1% /run/user/1000
+/dev/sr0         51M   51M     0 100% /run/media/usuario/VBox_GAs_7.0.12
+curso           7.2T  5.5T  1.8T  77% /mnt
+/dev/sdc2       4.0G   61M  4.0G   2% /datos2
+/dev/sdc5       8.0G   90M  8.0G   2% /home2
+
+-- Copiar /home antiguo en /home2
+[root@formacion /]# cp -raf /home/* /home2
+[root@formacion /]# 
+[root@formacion /]# du -csh /home
+151M	/home
+151M	total
+[root@formacion /]# du -csh /home2
+151M	/home2
+151M	total
+
+-- Entrar en /home2 y ver los permisos
+-- Comparar con /home
+
+-- Cambio /home a /home3
+-- y /home2 a /home
+mv /home /home3
+
+umount /home2
+mkdir /home
+mount /dev/sdc5 /home
+
+
+Filesystem      Size  Used Avail Use% Mounted on
+devtmpfs        1.9G     0  1.9G   0% /dev
+tmpfs           2.0G     0  2.0G   0% /dev/shm
+tmpfs           2.0G  9.3M  2.0G   1% /run
+tmpfs           2.0G     0  2.0G   0% /sys/fs/cgroup
+/dev/sda1        32G  7.1G   25G  22% /
+/dev/sdc1       7.9G   36M  7.4G   1% /datos1
+tmpfs           393M   32K  393M   1% /run/user/1000
+/dev/sr0         51M   51M     0 100% /run/media/usuario/VBox_GAs_7.0.12
+curso           7.2T  5.5T  1.8T  77% /mnt
+/dev/sdc2       4.0G   61M  4.0G   2% /datos2
+/dev/sdc5       8.0G  242M  7.8G   3% /home
+
+
+blkid /dev/sdc5
+
+-- Modicar fstab para añadir el blkid de /dev/sdc5 a /home en los inicios
+nano /etc/fstab
+/* Añadir: (el UUID puede ser distinto en cada caso)
+UUID=c8f1ca78-5c43-409a-b278-9669497f7fc6 /home xfs defaults 0 0
+*/
+
+reboot
+
+-- Si todo va bien... borrar el /home3 (datos antiguos que están /dev/sdc1)
+df -h | grep sda1
+/dev/sda1        32G  7.1G   25G  22% /
+
+[root@formacion /]# rm -rf /home2
+[root@formacion /]# rm -rf /home3
+[root@formacion /]# df -h | grep sda1
+/dev/sda1        32G  6.9G   26G  22% /
+
+
+
+--
+-- Práctica montajes
+
+1. Inicializar /dev/sdd con 1 partición
+2. Formatear /dev/sdd1 en xfs
+3. Montar /dev/sdd1 en /datos3
+4. Configurar /etc/fstab para el montaje automático de /datos3
+5. Reiniciar y comprobar
+
+--
+
+-- SOLUCIÓN
+
+[root@formacion /]# fdisk /dev/sdd
+
+Welcome to fdisk (util-linux 2.32.1).
+Changes will remain in memory only, until you decide to write them.
+Be careful before using the write command.
+
+Device does not contain a recognized partition table.
+Created a new DOS disklabel with disk identifier 0xd28733b1.
+
+Command (m for help): n
+Partition type
+   p   primary (0 primary, 0 extended, 4 free)
+   e   extended (container for logical partitions)
+Select (default p): p
+Partition number (1-4, default 1): 
+First sector (2048-67108863, default 2048): 
+Last sector, +sectors or +size{K,M,G,T,P} (2048-67108863, default 67108863): 
+
+Created a new partition 1 of type 'Linux' and of size 32 GiB.
+
+Command (m for help): p
+Disk /dev/sdd: 32 GiB, 34359738368 bytes, 67108864 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: dos
+Disk identifier: 0xd28733b1
+
+Device     Boot Start      End  Sectors Size Id Type
+/dev/sdd1        2048 67108863 67106816  32G 83 Linux
+
+Command (m for help): 
+
+
+Command (m for help): w
+The partition table has been altered.
+Calling ioctl() to re-read partition table.
+Syncing disks.
+
+
+mkfs.xfs /dev/sdd1
+
+mkdir /datos3
+
+mount /dev/sdd1 /datos3
+
+df -h
+
+-- Añadir al fstab. Recordar que el UUID puede ser distinto en cada caso
+UUID=01165bd8-ce3e-4b8e-83f4-507f4cca4545 /datos3 xfs defaults 0 0
+
+
+umount /datos3
+mount /datos3
+
+reboot
+
+----
+-- /home/nombreusuario/bin:
+
+echo $PATH
+
+cd
+mkdir bin
+
+[usuario@formacion bin]$ ln -s /usr/bin/terminator ./t
+[usuario@formacion bin]$ ls
+t
+[usuario@formacion bin]$ 
+[usuario@formacion bin]$ which nautilus
+/usr/bin/nautilus
+[usuario@formacion bin]$ ln -s /usr/bin/nautilus n
+[usuario@formacion bin]$ ls
+n  t
+[usuario@formacion bin]$ ln -s /usr/bin/firefox f
+[usuario@formacion bin]$ ln -s /usr/bin/gedit g
+[usuario@formacion bin]$ ln -s /usr/bin/mc m
+[usuario@formacion bin]$ ls
+f  g  m  n  t
+[usuario@formacion bin]$ 
+
+
+
+
+-- LVM
+
+-- Capítulo 13
+-- Página 351
+
+-- Añadir dos discos a la máquina virtual:
+poweroff
+
+
+-- Tras "insertar" los dos discos
+-- habrá más /dev/sde /dev/sdf
+
+su -
+		root
+
+cd /dev
+ls -lah sd*
+
+
+pvcreate /dev/sde
+pvcreate /dev/sdf
+
+
+[root@formacion dev]# pvdisplay /dev/sde
+  "/dev/sde" is a new physical volume of "8.00 GiB"
+  --- NEW Physical volume ---
+  PV Name               /dev/sde
+  VG Name               
+  PV Size               8.00 GiB
+  Allocatable           NO
+  PE Size               0   
+  Total PE              0
+  Free PE               0
+  Allocated PE          0
+  PV UUID               KnpVBw-K654-Urx0-dqu4-axvj-03lQ-hYPOat
+   
+[root@formacion dev]# pvdisplay /dev/sdf
+  "/dev/sdf" is a new physical volume of "8.00 GiB"
+  --- NEW Physical volume ---
+  PV Name               /dev/sdf
+  VG Name               
+  PV Size               8.00 GiB
+  Allocatable           NO
+  PE Size               0   
+  Total PE              0
+  Free PE               0
+  Allocated PE          0
+  PV UUID               W4VS4l-yqko-90u2-MpSP-IMqb-oiD0-ck0gBn
+
+
+
+
+[root@formacion dev]# pvs
+  PV         VG Fmt  Attr PSize PFree
+  /dev/sde      lvm2 ---  8.00g 8.00g
+  /dev/sdf      lvm2 ---  8.00g 8.00g
+
+
+-- Crear grupo de volúmenes
+
+vgcreate datos /dev/sde /dev/sdf
+
+vgdisplay datos
+
+vgs
+
+
+-- Crear volúmenes lógicos
+
+vcreate --name lv_opt --size 1GB datos
+
+lvdisplay
+
+lvs
+
+-- 
+
+vgrename datos vg_datos
+
+-- mkfs.xfs /dev/vg_datos/lv_opt
+-- mkfs.xfs /dev/mapper/vg_datos-lv_opt
+-- mkfs.xfs /dev/dm-0
+
+mkfs.xfs /dev/vg_datos/lv_opt
+
+[root@formacion mapper]# mkfs.xfs 
+/dev/vg_datos/lv_opt 
+meta-data=/dev/vg_datos/lv_opt   isize=512    
+agcount=4, agsize=65536 blks
+         =                       sectsz=512   
+attr=2, projid32bit=1
+         =                       crc=1        
+finobt=1, sparse=1, rmapbt=0
+         =                       reflink=1
+data     =                       bsize=4096   
+blocks=262144, imaxpct=25
+         =                       sunit=0      
+swidth=0 blks
+naming   =version 2              bsize=4096   
+ascii-ci=0, ftype=1
+log      =internal log           bsize=4096   
+blocks=2560, version=2
+         =                       sectsz=512   
+sunit=0 blks, lazy-count=1
+realtime =none                   extsz=4096   
+blocks=0, rtextents=0
+[root@formacion mapper]# 
+
+
+
+-- Montaje
+mkdir /opt2
+
+mount /dev/vg_datos/lv_opt /opt2
+
+-- Automontaje
+blkid /dev/vg_datos/lv_opt
+blkid /dev/mapper/vg_datos-lv_opt
+blkid /dev/dm-0
+
+-- Modificar /etc/fstab:
+nano /etc/fstab
+
+/* Añadir:
+UUID=75802de1-2b71-4173-be29-150ec207762e /opt2	xfs defaults 0 0
+*/
+
+umount /opt2
+mount /opt2
+
+
+-- EXTENDER UN LV
+pvscan
+
+-- Extender 2 GB = 2048 MB
+-- Necesito 512 PE * (4MB) = 2048 MB
+
+lvextend -l +512 /dev/vg_datos/lv_opt
+
+[root@formacion opt]# df -h | grep opt
+/dev/mapper/vg_datos-lv_opt 1014M   40M  975M 4% /opt2
+
+[root@formacion opt]# vgs
+  VG       #PV #LV #SN Attr   VSize  VFree 
+  vg_datos   2   1   0 wz--n- 15.99g 12.99g
+[root@formacion opt]# pvs
+  PV         VG       Fmt  Attr PSize  PFree 
+  /dev/sde   vg_datos lvm2 a--  <8.00g <5.00g
+  /dev/sdf   vg_datos lvm2 a--  <8.00g <8.00g
+[root@formacion opt]# lvs
+  LV     VG       Attr       LSize Pool Origin Data%  Meta%  Move Log 
+Cpy%Sync Convert
+  lv_opt vg_datos -wi-ao---- 3.00g   
+
+-- ext3 / ext4
+resize2fs /dev/nombredispositivo
+
+-- xfs
+xfs_growfs -d /dev/nombredispositivo
+
+xfs_growfs -d /dev/vg_datos/lv_opt
+
+[root@formacion opt]# df -h |grep opt
+/dev/mapper/vg_datos-lv_opt  3.0G   55M  3.0G   2% /opt2
