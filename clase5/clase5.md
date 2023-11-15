@@ -480,6 +480,26 @@ Logical Volume Manager
 Capítulo 13
 Página 351
 
+PV - paritición de volumen lógico
+VG - grupo de volumen lógico
+LV - volumen lógico individual
+
+![Alt text](image-9.png)
+
+### Porqué usar LVM?
+
+Porqué en el particionamiento clasico hacer crecer el disco es muy complicado.
+
+Con LVM es más sencillo hacer crecer y decrecer los LV y VG según necesidad.
+
+![Alt text](image-8.png)
+
+Con LVM se gana mucho dinamismo para dar discos a los grupos volumenes lógicos(vg) y luego este a los volumenes lógicos individuales(LV).
+
+Los volumenes lógicos individuales necesitan de su formateo para poder ser usados.
+
+### Creación de un LVM
+
 El particionamento de un disco se hace de forma predeterminada con el LVM.
 
 ```text
@@ -516,3 +536,142 @@ mirroring, thin provisioning, or snapshotting.
 As a rule of thumb, we need to understand that PVs are designed to prepare devices to be used by
 LVM, VGs to aggregate PVs, and LVs to distribute the aggregated space.
 ```
+
+Si falla uno de los discos del volumen lógico puede fallar el volumen lógico en conjunto.
+
+No es recomendado hacer el flujo del libro en el que se dan particiones del disco.
+
+Lo recomendado es dar todo el disco.
+
+Usaremos el comando pvcrete
+
+```bash
+
+[root@formacion dev]# tldr pvcreate
+
+  pvcreate
+
+  Initialize a disk or partition for use as a physical volume.
+  See also: `lvm`.
+  More information: https://man7.org/linux/man-pages/man8/pvcreate.8.html.
+
+  - Initialize the `/dev/sda1` volume for use by LVM:
+    pvcreate /dev/sda1
+
+  - Force the creation without any confirmation prompts:
+    pvcreate --force /dev/sda1
+
+```
+
+Después de meter los dos discos habrá más sds en dev.
+
+```bash
+[root@formacion dev]# pvcreate /dev/sde
+  Physical volume "/dev/sde" successfully created.
+[root@formacion dev]# pvcreate /dev/sdf
+  Physical volume "/dev/sdf" successfully created.
+```
+
+usaremos el pvdisplay y el pvs para ver lo que vamos creando
+
+```bash
+[root@formacion dev]# pvdisplay /dev/sde
+  "/dev/sde" is a new physical volume of "8.00 GiB"
+  --- NEW Physical volume ---
+  PV Name               /dev/sde
+  VG Name
+  PV Size               8.00 GiB
+  Allocatable           NO
+  PE Size               0
+  Total PE              0
+  Free PE               0
+  Allocated PE          0
+  PV UUID               rZ7lm7-5740-zCLQ-OFsP-81Cl-uejh-twPdTq
+
+[root@formacion dev]# pvdisplay /dev/sdf
+  "/dev/sdf" is a new physical volume of "8.00 GiB"
+  --- NEW Physical volume ---
+  PV Name               /dev/sdf
+  VG Name
+  PV Size               8.00 GiB
+  Allocatable           NO
+  PE Size               0
+  Total PE              0
+  Free PE               0
+  Allocated PE          0
+  PV UUID               4057dL-qqIK-9zjN-0WxI-oXQ3-phB5-Yr4Ey5
+
+[root@formacion dev]# pvs
+  PV         VG Fmt  Attr PSize PFree
+  /dev/sde      lvm2 ---  8.00g 8.00g
+  /dev/sdf      lvm2 ---  8.00g 8.00g
+
+```
+
+Ahora creamos el volumen físico.
+
+```bash
+[root@formacion dev]# tldr vgs
+
+  vgs
+
+  Display information about volume groups.
+  See also: `lvm`.
+  More information: https://man7.org/linux/man-pages/man8/vgs.8.html.
+
+  - Display information about volume groups:
+    vgs
+
+  - Display all volume groups:
+    vgs -a
+
+  - Change default display to show more details:
+    vgs -v
+
+  - Display only specific fields:
+    vgs -o field_name_1,field_name_2
+
+  - Append field to default display:
+    vgs -o +field_name
+
+  - Suppress heading line:
+    vgs --noheadings
+
+  - Use separator to separate fields:
+    vgs --separator =
+
+```
+
+vgcreate
+
+```bash
+[root@formacion dev]# tldr vgcreate
+
+  vgcreate
+
+  Create volume groups combining multiple mass-storage devices.
+  See also: `lvm`.
+  More information: https://man7.org/linux/man-pages/man8/vgcreate.8.html.
+
+  - Create a new volume group called vg1 using the `/dev/sda1` device:
+    vgcreate vg1 /dev/sda1
+
+  - Create a new volume group called vg1 using multiple devices:
+    vgcreate vg1 /dev/sda1 /dev/sdb1 /dev/sdc1
+```
+
+Los nvme seran los discos xv no los sd
+
+//todo lo que mandas al /dev/null se va a borrar.
+
+## SI perdemos alguno de los archivos de configuración
+
+Seguramente podremos hacer una copia desde el skel al /home/usuario/ que ha perdido los archivos
+
+![Alt text](image-7.png)
+
+bashsrc
+bash_profile
+.
+.
+.
