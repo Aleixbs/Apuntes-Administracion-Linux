@@ -660,6 +660,233 @@ vgcreate
     vgcreate vg1 /dev/sda1 /dev/sdb1 /dev/sdc1
 ```
 
+#### Crear LV
+
+lvcreate
+
+```bash
+[root@formacion dev]# tldr lvs
+
+  lvs
+
+  Display information about logical volumes.
+  See also: `lvm`.
+  More information: https://man7.org/linux/man-pages/man8/lvs.8.html.
+
+  - Display information about logical volumes:
+    lvs
+
+  - Display all logical volumes:
+    lvs -a
+
+  - Change default display to show more details:
+    lvs -v
+
+  - Display only specific fields:
+    lvs -o field_name_1,field_name_2
+
+  - Append field to default display:
+    lvs -o +field_name
+
+  - Suppress heading line:
+    lvs --noheadings
+
+  - Use a separator to separate fields:
+    lvs --separator =
+```
+
+```bash
+[root@formacion dev]# tldr lvcreate
+
+  lvcreate
+
+  Create a logical volume in an existing volume group. A volume group is a collection of logical and physical volumes.
+  See also: `lvm`.
+  More information: https://man7.org/linux/man-pages/man8/lvcreate.8.html.
+
+  - Create a logical volume of 10 gigabytes in the volume group vg1:
+    lvcreate -L 10G vg1
+
+  - Create a 1500 megabyte linear logical volume named mylv in the volume group vg1:
+    lvcreate -L 1500 -n mylv vg1
+
+  - Create a logical volume called mylv that uses 60% of the total space in volume group vg1:
+    lvcreate -l 60%VG -n mylv vg1
+
+  - Create a logical volume called mylv that uses all the unallocated space in the volume group vg1:
+    lvcreate -l 100%FREE -n mylv vg1
+
+```
+
+#### Resultado de la creación del VG
+
+```bash
+[root@formacion dev]# cd vg_datos
+[root@formacion vg_datos]# ls
+lv_opt
+[root@formacion vg_datos]# ls -lah
+total 0
+drwxr-xr-x.  2 root root   60 Nov 15 18:47 .
+drwxr-xr-x. 20 root root 3.4K Nov 15 18:47 ..
+lrwxrwxrwx.  1 root root    7 Nov 15 18:47 lv_opt -> ../dm-0
+[root@formacion vg_datos]# cd /dev
+[root@formacion dev]# cd /mapper
+-bash: cd: /mapper: No such file or directory
+[root@formacion dev]# cd mapper
+[root@formacion mapper]# ls
+control  vg_datos-lv_opt
+[root@formacion mapper]#
+
+```
+
+dm-0 aparece en dev
+
+Y será asignado con la controladora 253 y no la 8 (sata).
+
+Para ver cómo formatear esta partición podemos usar tres formas de nombrar el disco.
+
+```bash
+
+-- mkfs.xfs /dev/vg_datos/lv_opt
+-- mkfs.xfs /dev/mapper/vg_datos-lv_opt
+-- mkfs.xfs /dev/dm-0
+
+mkfs.xfs /dev/vg_datos/lv_opt
+```
+
+```bash
+[root@formacion dev]# mkfs.xfs /dev/vg_datos/lv_opt
+meta-data=/dev/vg_datos/lv_opt   isize=512    agcount=4, agsize=65536 blks
+         =                       sectsz=512   attr=2, projid32bit=1
+         =                       crc=1        finobt=1, sparse=1, rmapbt=0
+         =                       reflink=1
+data     =                       bsize=4096   blocks=262144, imaxpct=25
+         =                       sunit=0      swidth=0 blks
+naming   =version 2              bsize=4096   ascii-ci=0, ftype=1
+log      =internal log           bsize=4096   blocks=2560, version=2
+         =                       sectsz=512   sunit=0 blks, lazy-count=1
+realtime =none                   extsz=4096   blocks=0, rtextents=0
+[root@formacion dev]#
+```
+
+Montar el disco LV
+
+```bash
+[root@formacion dev]# mount /dev/vg_datos/lv_opt /opt2
+[root@formacion dev]# df -h
+Filesystem                   Size  Used Avail Use% Mounted on
+devtmpfs                     1.9G     0  1.9G   0% /dev
+tmpfs                        2.0G     0  2.0G   0% /dev/shm
+tmpfs                        2.0G  9.3M  2.0G   1% /run
+tmpfs                        2.0G     0  2.0G   0% /sys/fs/cgroup
+/dev/sda1                     32G  7.0G   26G  22% /
+/dev/sdd1                     32G  261M   32G   1% /datos3
+/dev/sdc2                    4.0G   61M  4.0G   2% /datos2
+/dev/sdc1                    7.9G   36M  7.4G   1% /datos1
+tmpfs                        393M   28K  393M   1% /run/user/1000
+/dev/sr0                      51M   51M     0 100% /run/media/usuario/VBox_GAs_7.0.12
+/dev/mapper/vg_datos-lv_opt 1014M   40M  975M   4% /opt2
+
+```
+
+--AUTOMONTAJE en fstab del LV
+
+```bash
+[root@formacion opt]# blkid /dev/vg_datos/lv_opt
+/dev/vg_datos/lv_opt: UUID="793a01b2-24e9-4bb0-b348-74f00b210cf0" BLOCK_SIZE="512" TYPE="xfs"
+[root@formacion opt]# nano /etc/fstab
+[root@formacion opt]# cat /etc/fstab
+
+#
+# /etc/fstab
+# Created by anaconda on Sun Mar 13 20:35:22 2022
+#
+# Accessible filesystems, by reference, are maintained under '/dev/disk/'.
+# See man pages fstab(5), findfs(8), mount(8) and/or blkid(8) for more info.
+#
+# After editing this file, run 'systemctl daemon-reload' to update systemd
+# units generated from this file.
+#
+UUID=6a464459-ea7f-4533-bfd7-a1aacd302170 /                       xfs     defaults        0 0
+UUID=af791686-6373-4e41-a9de-3afd3e7148db none swap defaults 0 0
+UUID=6a4960b9-4da1-4ad2-861e-06a785a28c59 /datos1 ext4 defaults 0 0
+UUID=1c39e72d-d1c6-41f3-b5f4-8c292eafe538 /datos2 xfs defaults 0 0
+UUID=0491daaa-cb62-446e-9bc5-73afa580f1eb /datos3 xfs defaults 0 0
+UUID=793a01b2-24e9-4bb0-b348-74f00b210cf0 /opt2 xfs defaults 0 0
+```
+
+###### pvscan
+
+Sirve para escanear lo que esta en uso o no de los discos y grupos de volumenes.
+
+```bash
+[root@formacion opt]# vgs
+  VG       #PV #LV #SN Attr   VSize  VFree
+  vg_datos   2   1   0 wz--n- 15.99g 14.99g
+[root@formacion opt]# pvscan
+  PV /dev/sde   VG vg_datos        lvm2 [<8.00 GiB / <7.00 GiB free]
+  PV /dev/sdf   VG vg_datos        lvm2 [<8.00 GiB / <8.00 GiB free]
+  Total: 2 [15.99 GiB] / in use: 2 [15.99 GiB] / in no VG: 0 [0   ]
+
+```
+
+##### Añadir espacio al VG grupo de volumenes con lvextend
+
+```bash
+[root@formacion opt]# tldr lvextend
+
+  lvextend
+
+  Increase the size of a logical volume.
+  See also: `lvm`.
+  More information: https://man7.org/linux/man-pages/man8/lvextend.8.html.
+
+  - Increase a volume's size to 120 GB:
+    lvextend --size 120G logical_volume
+
+  - Increase a volume's size by 40 GB as well as the underlying filesystem:
+    lvextend --size +40G -r logical_volume
+
+  - Increase a volume's size to 100% of the free physical volume space:
+    lvextend --size 100%FREE logical_volume
+```
+
+```bash
+[root@formacion opt]# lvextend -l +512 /dev/vg_datos/lv_opt
+  Size of logical volume vg_datos/lv_opt changed from 1.00 GiB (256 extents) to 3.00 GiB (768 extents).
+  Logical volume vg_datos/lv_opt successfully resized.
+
+```
+
+Los PE serían cómo los sectores del discoduro Sata
+
+```texto
+-- "Extender 2 GB = 2048 MB"
+-- "Necesito 512 PE * (4MB) = 2048 MB"
+```
+
+```bash
+
+lvextend -l +512 /dev/vg_datos/lv_opt
+```
+
+El espacio esta asignado pero el sistemad e archivos no lo reconoce aún.
+
+Con un formato ext3/3xt4
+resize2fs /dev/nombredispositivo
+
+```bash
+resize2fs /dev/vg_datos/lv_opt
+
+```
+
+Con un formato xfs
+xfs_growfs -d /dev/nombredispositivo
+
+```bash
+xfs_growfs -d /dev/vg_datos/lv_opt
+```
+
 Los nvme seran los discos xv no los sd
 
 //todo lo que mandas al /dev/null se va a borrar.
