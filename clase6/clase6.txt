@@ -1,0 +1,415 @@
+-- Código 16.11.2023
+
+-- Creación de instantáneas del sistema de archivo y uso para creación de copias de seguridad
+
+-- Por ejemplo: MongodB motor TigerWired (journal)
+
+
+-- Usar un punto de montaje xfs con LVM:
+
+[root@formacion opt]# cd /opt2
+[root@formacion opt2]# ls
+[root@formacion opt2]# 
+[root@formacion opt2]# 
+[root@formacion opt2]# cp /etc/passwd ./
+[root@formacion opt2]# ls
+passwd
+[root@formacion opt2]# touch f1
+[root@formacion opt2]# touch f2
+[root@formacion opt2]# touch f3
+[root@formacion opt2]# nano f1
+[root@formacion opt2]# nano f2
+[root@formacion opt2]# ls
+f1  f2  f3  passwd
+[root@formacion opt2]# ll
+total 12
+-rw-r--r--. 1 root root   19 Nov 16 15:19 f1
+-rw-r--r--. 1 root root   19 Nov 16 15:19 f2
+-rw-r--r--. 1 root root    0 Nov 16 15:19 f3
+-rw-r--r--. 1 root root 2874 Nov 16 15:19 passwd
+[root@formacion opt2]# pwd
+/opt2
+[root@formacion opt2]# cat f1
+Información de f1
+[root@formacion opt2]# cat f2
+Información de f2
+[root@formacion opt2]# cat f3
+
+
+-- Crear la instantánea
+lvcreate --size 500M --snapshot --name lv_opt_s01 /dev/vg_datos/lv_opt
+
+-- Cambios en el sistema "real"
+[root@formacion opt2]# touch f4
+[root@formacion opt2]# 
+[root@formacion opt2]# ls
+f1  f2  f3  f4  passwd
+[root@formacion opt2]# nano f1
+[root@formacion opt2]# nano f2
+[root@formacion opt2]# cat f1
+Información de f1
+Cambios tras la instantánea
+[root@formacion opt2]# cat f2
+Información de f2
+Cambrios tras la instantánea
+
+-- Montar la instantánea
+mkdir /opt2_backup
+
+mount -t xfs -o nouuid /dev/vg_datos/lv_opt_s01 /opt2_backup
+
+cd /opt2_backup
+
+zip -9rv /datos1/opt2_backup_20231116.zip /opt2_backup/*
+
+-- Desmontar y destruir la instantánea
+umount /opt2_backup
+
+lvremove vg_datos/lv_opt_s01
+
+-- /opt2 continúa con sus operaciones
+
+
+
+
+-- INSTALACIÓN DE APLICACIONES
+-- DNF / YUM
+-- Página 198
+
+[root@formacion datos1]# which yum
+/usr/bin/yum
+[root@formacion datos1]# ls -lah /usr/bin/yum
+lrwxrwxrwx. 1 root root 5 Nov  9  2021 /usr/bin/yum -> dnf-3
+[root@formacion datos1]# ls -lah /usr/bin/dnf-3
+-rwxr-xr-x. 1 root root 2.0K Nov  9  2021 /usr/bin/dnf-3
+[root@formacion datos1]# file /usr/bin/dnf-3
+/usr/bin/dnf-3: Python script, ASCII text executable
+
+
+-- Carpeta de los repositorios de DNF
+/etc/yum.repos.d
+
+cd /etc/yum.repos.d/
+
+dnf-3 repolist
+dnf-3 repolist --all
+
+-- Para instalar los repositorios de epel (Extra Packages for Enterprise Linux)
+yum install epel-release
+
+dnf-3 config-manager --enable media-baseos
+dnf-3 repolist --all
+dnf-3 config-manager --disable media-baseos
+dnf-3 repolist --all
+
+
+dnf-3 config-manager --disable epel
+dnf-3 config-manager --disable epel-modular
+
+dnf-3 install screen
+  -- Fallo, no encuentra que tenga el programa screen
+
+dnf-3 config-manager --enable epel
+dnf-3 config-manager --enable epel-modular
+
+dnf-3 install screen
+
+
+yum list
+ -- Muestra todos los paquetes que sirven los repositorios activos (enables)
+
+dnf-3 list |grep screen
+
+
+
+-- Actualizar el sistema
+dnf-3 update
+
+
+-- Instalar JAVA:
+dnf-3 install java
+
+
+
+--- INSTALAR CON RPM
+-- Como root
+
+cd
+
+wget http://baseinfo.es/cursos/23023_linux/repo/jdk-8u151-linux-x64.rpm
+
+wget http://baseinfo.es/cursos/23023_linux/repo/jdk-8u201-linux-x64.tar.gz
+
+
+-- Ficheros RPM
+
+rpm -i jdk-8u151-linux-x64.rpm
+
+
+
+-- Instalación manual .tar.gz
+cd 
+mv jdk-8u201-linux-x64.tar.gz /opt
+
+cd /opt
+tar xvf jdk-8u201-linux-x64.tar.gz
+
+ln -s jdk1.8.0_201/ jdk
+
+-- Para configurar a un usuairo para usar la versión de java de /opt:
+-- Como usuario
+cd
+nano .bashrc
+
+/* Añadir:
+export PATH=/opt/jdk/bin:$PATH
+*/
+
+java -version
+openjdk version "1.8.0_392"
+
+-- Al iniciar nueva sesión
+java -version
+java version "1.8.0_201"
+
+-- Como root:
+cd /opt
+rm jdk
+ln -s /usr/java/jdk1.8.0_151
+
+
+-- De nuevo, como usuario,
+java -version
+java version "1.8.0_151"
+
+
+-- INSTALACIÓN MEDIANTE COMPILACIÓN
+-- REQUIERE GCC MAKE
+-- Descargar la fuente
+./configure
+  -- Aparecerán errores con las dependencias
+make
+make install
+
+
+
+
+-- REDES
+-- CAPÍTULOS 6
+-- Página 172
+
+ifconfig
+
+-- Ficheros de configuración de la red
+
+cd /etc/sysconfig/network-scripts
+ls
+cat ifcfg-enp0s3
+
+-- Backup del fichero de configuración
+cp ifcfg-enp0s3 /root
+
+nano ifcfg-enp0s3
+
+
+-- Contenido:
+TYPE=Ethernet
+BOOTPROTO=static
+DEFROUTE=yes
+IPV4_FAILURE_FATAL=no
+IPV6INIT=yes
+IPV6_AUTOCONF=yes
+IPV6_DEFROUTE=yes
+IPV6_FAILURE_FATAL=no
+NAME=enp0s3
+UUID=ffc67b42-7ee4-4dd6-bc13-1d343a017e5f
+DEVICE=enp0s3
+ONBOOT=yes
+IPADDR=192.168.1.251
+NETMASK=255.255.255.0
+GATEWAY=192.168.1.1
+DNS1=8.8.8.8
+DNS2=8.8.4.4
+
+
+
+
+-- Parar la interfaz de red:
+ifdown enp0s3
+
+-- Iniciar:
+ifup enp0s3
+
+-- nmtui
+-- nmcli
+
+nmtui
+
+/etc/sysconfig/network
+-- parámetros para todas las interfaces de red
+
+
+-- hostname
+
+/etc/hostname
+
+-- Para cambiar el nombre
+
+hostnamectl set-hostname formacion2
+
+
+-- Fichero de resolución local de nombres (DNS local)
+/etc/hosts
+
+-- /etc/hosts se consulta antes de hacer una petición DNS
+
+
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+
+127.0.0.1	srvdboracle oracle db
+
+
+ping srvdboracle
+ping oracle
+ping db
+
+
+-- CONEXIONES REMOTAS
+-- Limpiar el cortafuegos
+-- Como root:
+iptables -F
+
+-- Iniciar el servidor ssh:
+systemctl start sshd.service
+
+-- Configurar servicio SSH
+/etc/ssh/sshd_config
+
+-- Recomendado:
+PermitRootLogin no 
+
+
+
+systemctl restart sshd.service
+
+ssh root@localhost
+-- Error de autentciación
+
+ssh usuario@localhost
+su -
+
+
+
+-- GESTIÓN DE SERVICIOS
+-- Página 104
+
+
+systemctl list-units --type service
+systemctl list-units --type service --all
+
+
+-- Ver estado de un servicio
+systemctl status sshd.service
+
+-- Iniciar o parar un servicio
+systemctl stop | start sshd.service
+
+systemctl stop sshd.service
+systemctl start sshd.service
+
+
+-- HABILITAR / DESHABILITAR EL SERVICIO AL INICIO
+systemctl is-enabled sshd.service
+
+systemctl disable sshd.service
+systemctl enable sshd.service
+
+
+-- CONSUTLAR SERVICIO ACTIVO/NO ACTIVO
+systemctl is-active sshd.service
+
+
+-- INSTALAR SERVIDOR HTTPD (APACHE)
+dnf-3 install httpd
+
+systemctl start httpd.service
+systemctl stop httpd.service
+
+[root@formacion ~]# systemctl is-enabled httpd.service
+disabled
+
+-- Configurar para que se ponga en marcha con el inicio de la máquina:
+[root@formacion ~]# systemctl enable httpd.service
+Created symlink /etc/systemd/system/multi-user.target.wants/httpd.service → /usr/lib/systemd/system/httpd.service.
+
+
+-- TARGETS
+
+systemctl get-default
+
+[root@formacion ~]# systemctl get-default
+graphical.target
+[root@formacion ~]# systemctl set-default multi-user.target
+Removed /etc/systemd/system/default.target.
+Created symlink /etc/systemd/system/default.target → /usr/lib/systemd/system/multi-user.target.
+[root@formacion ~]# 
+[root@formacion ~]# 
+[root@formacion ~]# systemctl get-default
+multi-user.target
+[root@formacion ~]# 
+
+reboot
+
+systemctl set-default graphical.target
+ -- El siguiente reinicio cargará el entorno gráfico
+
+-- Iniciar el entorno gráfico
+systemctl isolate graphical.target
+
+/* MODOS DE RESCATE
+systemctl rescue
+  -- Monta todos los sistemas de archivos y servicios importantes
+  -- NO activa las interfaces de red ni permite logins
+
+systemctl emergency
+  -- Menor entorno posible
+  -- Monta el root / en modo de solo lectura
+  -- NO activa las interfaces de red ni permite logins
+*/
+
+
+
+-- TRABAJAR CON PROCESOS
+ps
+
+ps -ef
+ps aux
+
+pstree
+
+
+-- Ejemplo. Iniciar un mc en una ventana de terminal
+ps aux|grep mc
+
+
+-- kill -> mandar señales a procesos
+-- 15 TERM (default) -> pedir a un programa que cierre (correctamente)
+-- 9 ->  el proceso se mata, ser cierra inmediatamente sin darle opción
+
+
+kill PID   -> -15 term
+kill -9 PID   -> cerrar el proceso
+
+
+ps j -- muestra procesos padre
+
+
+-- Monitorización de procedsos
+top
+
+-- h para la ayuda
+
+
+dnf-3 install htop
+htop
